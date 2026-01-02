@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Raster PACS Pro</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/viewer-pro.css">
+    <style>
+        body {
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        .settings-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .settings-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .back-link:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .settings-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .settings-section h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .local-settings {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .setting-item label {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .setting-item .value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .pacs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pacs-node {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .pacs-node.default {
+            border-color: var(--accent);
+        }
+
+        .pacs-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+        }
+
+        .pacs-status.success { background: var(--success); }
+        .pacs-status.failed { background: var(--danger); }
+        .pacs-status.untested { background: var(--warning); }
+
+        .pacs-info {
+            flex: 1;
+        }
+
+        .pacs-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pacs-name .badge {
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .pacs-details {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .pacs-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: #00a8ff;
+        }
+
+        .btn-danger {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .add-pacs-btn {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+
+        .add-pacs-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--accent);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group .hint {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+        }
+
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .test-result.success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .test-result.error {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .toast.info {
+            background: var(--accent);
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1>⚙️ Settings</h1>
+            <a href="/" class="back-link">← Back to Viewer</a>
+        </div>
+
+        <!-- Local AE Settings -->
+        <div class="settings-section">
+            <h2>🏠 Local Application Entity</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                These settings identify this viewer to PACS servers. Configure in application.yml and restart to change.
+            </p>
+            <div class="local-settings">
+                <div class="setting-item">
+                    <label>AE Title</label>
+                    <div class="value" id="localAeTitle">-</div>
+                </div>
+                <div class="setting-item">
+                    <label>Hostname</label>
+                    <div class="value" id="localHostname">-</div>
+                </div>
+                <div class="setting-item">
+                    <label>Port</label>
+                    <div class="value" id="localPort">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PACS Nodes -->
+        <div class="settings-section">
+            <h2>🏥 PACS Servers</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                Configure connections to PACS servers. Remember to whitelist this viewer's AE Title on each PACS server.
+            </p>
+
+            <div class="pacs-list" id="pacsList">
+                <div class="empty-state">Loading...</div>
+            </div>
+
+            <button class="add-pacs-btn" onclick="openAddModal()">
+                ➕ Add PACS Server
+            </button>
+        </div>
+
+        <!-- Help -->
+        <div class="settings-section">
+            <h2>❓ Help</h2>
+            <p>To connect to a PACS server:</p>
+            <ol style="color: var(--text-secondary); line-height: 1.8;">
+                <li>Add the PACS server details above (AE Title, Hostname, Port)</li>
+                <li>On the PACS server, add this viewer as a known AE:
+                    <ul>
+                        <li>AE Title: <strong id="helpAeTitle">RASTER_PACS</strong></li>
+                        <li>IP: <strong>Your machine's IP address</strong></li>
+                        <li>Port: <strong id="helpPort">11112</strong></li>
+                    </ul>
+                </li>
+                <li>Click "Test" to verify the connection</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Add/Edit PACS Modal -->
+    <div class="modal" id="pacsModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add PACS Server</h3>
+                <button class="btn" onclick="closeModal()" style="padding: 5px 10px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pacsId">
+
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="pacsName" placeholder="e.g., Hospital PACS">
+                    <div class="hint">A friendly name to identify this server</div>
+                </div>
+
+                <div class="form-group">
+                    <label>AE Title *</label>
+                    <input type="text" id="pacsAeTitle" placeholder="e.g., DCM4CHEE">
+                    <div class="hint">The Application Entity title of the PACS server</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hostname / IP *</label>
+                        <input type="text" id="pacsHostname" placeholder="e.g., 192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label>Port *</label>
+                        <input type="number" id="pacsPort" placeholder="11112" value="11112">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="pacsDescription" placeholder="Optional description">
+                </div>
+
+                <div class="form-group">
+                    <label>Query/Retrieve Level</label>
+                    <select id="pacsQrLevel">
+                        <option value="STUDY">STUDY</option>
+                        <option value="SERIES">SERIES</option>
+                        <option value="IMAGE">IMAGE</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pacsActive" checked>
+                        <label for="pacsActive">Active</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pacsDefault">
+                        <label for="pacsDefault">Set as default PACS server</label>
+                    </div>
+                </div>
+
+                <div class="test-result" id="testResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="testConnectionFromModal()">🔌 Test Connection</button>
+                <button class="btn" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="savePacsNode()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_BASE = '';
+        let pacsNodes = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLocalSettings();
+            loadPacsNodes();
+        });
+
+        // Load local AE settings
+        async function loadLocalSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/api/settings/local`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('localAeTitle').textContent = data.aeTitle || '-';
+                    document.getElementById('localHostname').textContent = data.hostname || '-';
+                    document.getElementById('localPort').textContent = data.port || '-';
+                    document.getElementById('helpAeTitle').textContent = data.aeTitle || 'RASTER_PACS';
+                    document.getElementById('helpPort').textContent = data.port || '11112';
+                }
+            } catch (error) {
+                console.error('Error loading local settings:', error);
+            }
+        }
+
+        // Load PACS nodes
+        async function loadPacsNodes() {
+            try {
+                const response = await fetch(`${API_BASE}/api/settings/pacs`);
+                if (response.ok) {
+                    pacsNodes = await response.json();
+                    renderPacsNodes();
+                }
+            } catch (error) {
+                console.error('Error loading PACS nodes:', error);
+                document.getElementById('pacsList').innerHTML =
+                    '<div class="empty-state">Error loading PACS nodes</div>';
+            }
+        }
+
+        // Render PACS nodes list
+        function renderPacsNodes() {
+            const container = document.getElementById('pacsList');
+
+            if (pacsNodes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No PACS servers configured</p>
+                        <p>Click "Add PACS Server" to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = pacsNodes.map((node, index) => `
+                <div class="pacs-node ${node.isDefault ? 'default' : ''}" data-index="${index}">
+                    <div class="pacs-status ${getStatusClass(node)}"></div>
+                    <div class="pacs-info">
+                        <div class="pacs-name">
+                            ${escapeHtml(node.name)}
+                            ${node.isDefault ? '<span class="badge">Default</span>' : ''}
+                            ${!node.isActive ? '<span class="badge" style="background: var(--text-secondary)">Inactive</span>' : ''}
+                        </div>
+                        <div class="pacs-details">
+                            <strong>${escapeHtml(node.aeTitle)}</strong> @ ${escapeHtml(node.hostname)}:${node.port}
+                            ${node.description ? ' — ' + escapeHtml(node.description) : ''}
+                        </div>
+                    </div>
+                    <div class="pacs-actions">
+                        <button class="btn btn-success" onclick="testConnection(${index})">🔌 Test</button>
+                        <button class="btn" onclick="editPacsNode(${index})">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deletePacsNode(${index})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(node) {
+            if (!node.lastTestResult) return 'untested';
+            return node.lastTestResult === 'SUCCESS' ? 'success' : 'failed';
+        }
+
+        // Open add modal
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add PACS Server';
+            document.getElementById('pacsId').value = '';
+            document.getElementById('pacsName').value = '';
+            document.getElementById('pacsAeTitle').value = '';
+            document.getElementById('pacsHostname').value = '';
+            document.getElementById('pacsPort').value = '11112';
+            document.getElementById('pacsDescription').value = '';
+            document.getElementById('pacsQrLevel').value = 'STUDY';
+            document.getElementById('pacsActive').checked = true;
+            document.getElementById('pacsDefault').checked = pacsNodes.length === 0;
+            document.getElementById('testResult').style.display = 'none';
+            document.getElementById('pacsModal').style.display = 'flex';
+        }
+
+        // Edit PACS node
+        function editPacsNode(index) {
+            const node = pacsNodes[index];
+            document.getElementById('modalTitle').textContent = 'Edit PACS Server';
+            document.getElementById('pacsId').value = index; // Using index as ID for now
+            document.getElementById('pacsName').value = node.name;
+            document.getElementById('pacsAeTitle').value = node.aeTitle;
+            document.getElementById('pacsHostname').value = node.hostname;
+            document.getElementById('pacsPort').value = node.port;
+            document.getElementById('pacsDescription').value = node.description || '';
+            document.getElementById('pacsQrLevel').value = node.queryRetrieveLevel || 'STUDY';
+            document.getElementById('pacsActive').checked = node.isActive;
+            document.getElementById('pacsDefault').checked = node.isDefault;
+            document.getElementById('testResult').style.display = 'none';
+            document.getElementById('pacsModal').style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('pacsModal').style.display = 'none';
+        }
+
+        // Get form data
+        function getFormData() {
+            return {
+                name: document.getElementById('pacsName').value.trim(),
+                aeTitle: document.getElementById('pacsAeTitle').value.trim(),
+                hostname: document.getElementById('pacsHostname').value.trim(),
+                port: parseInt(document.getElementById('pacsPort').value) || 11112,
+                description: document.getElementById('pacsDescription').value.trim(),
+                queryRetrieveLevel: document.getElementById('pacsQrLevel').value,
+                isActive: document.getElementById('pacsActive').checked,
+                isDefault: document.getElementById('pacsDefault').checked
+            };
+        }
+
+        // Validate form
+        function validateForm(data) {
+            if (!data.name) {
+                showToast('Please enter a name', 'error');
+                return false;
+            }
+            if (!data.aeTitle) {
+                showToast('Please enter an AE Title', 'error');
+                return false;
+            }
+            if (!data.hostname) {
+                showToast('Please enter a hostname', 'error');
+                return false;
+            }
+            if (!data.port || data.port < 1 || data.port > 65535) {
+                showToast('Please enter a valid port (1-65535)', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        // Save PACS node
+        async function savePacsNode() {
+            const data = getFormData();
+            if (!validateForm(data)) return;
+
+            const pacsId = document.getElementById('pacsId').value;
+            const isEdit = pacsId !== '';
+
+            try {
+                const url = isEdit
+                    ? `${API_BASE}/api/settings/pacs/${pacsId}`
+                    : `${API_BASE}/api/settings/pacs`;
+
+                const response = await fetch(url, {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success || response.ok) {
+                    showToast(isEdit ? 'PACS node updated' : 'PACS node created', 'success');
+                    closeModal();
+                    loadPacsNodes();
+                } else {
+                    showToast(result.message || 'Failed to save', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving PACS node:', error);
+                showToast('Error saving PACS node', 'error');
+            }
+        }
+
+        // Delete PACS node
+        async function deletePacsNode(index) {
+            const node = pacsNodes[index];
+            if (!confirm(`Are you sure you want to delete "${node.name}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/settings/pacs/${index}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('PACS node deleted', 'success');
+                    loadPacsNodes();
+                } else {
+                    showToast('Failed to delete PACS node', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting PACS node:', error);
+                showToast('Error deleting PACS node', 'error');
+            }
+        }
+
+        // Test connection
+        async function testConnection(index) {
+            const node = pacsNodes[index];
+            const nodeEl = document.querySelector(`.pacs-node[data-index="${index}"]`);
+            nodeEl.classList.add('loading');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/settings/pacs/test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(node)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(`Connection successful (${result.responseTimeMs}ms)`, 'success');
+                    node.lastTestResult = 'SUCCESS';
+                } else {
+                    showToast(`Connection failed: ${result.message}`, 'error');
+                    node.lastTestResult = 'FAILED';
+                }
+
+                renderPacsNodes();
+            } catch (error) {
+                console.error('Error testing connection:', error);
+                showToast('Error testing connection', 'error');
+            } finally {
+                nodeEl?.classList.remove('loading');
+            }
+        }
+
+        // Test connection from modal
+        async function testConnectionFromModal() {
+            const data = getFormData();
+            if (!validateForm(data)) return;
+
+            const resultEl = document.getElementById('testResult');
+            resultEl.textContent = 'Testing connection...';
+            resultEl.className = 'test-result';
+            resultEl.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/settings/pacs/test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultEl.textContent = `✓ Connection successful (${result.responseTimeMs}ms)`;
+                    resultEl.className = 'test-result success';
+                } else {
+                    resultEl.textContent = `✗ Connection failed: ${result.message}`;
+                    resultEl.className = 'test-result error';
+                }
+            } catch (error) {
+                resultEl.textContent = `✗ Error: ${error.message}`;
+                resultEl.className = 'test-result error';
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'in.raster'
+version = '0.0.1-SNAPSHOT'
+description = 'raster-pacs'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+ext {
+    dcm4cheVersion = '5.31.1'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://www.dcm4che.org/maven2/' }
+    maven { url = 'https://raw.github.com/nroduit/mvn-repo/master/' }
+}
+
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // dcm4che DICOM toolkit
+    implementation "org.dcm4che:dcm4che-core:${dcm4cheVersion}"
+    implementation "org.dcm4che:dcm4che-net:${dcm4cheVersion}"
+    implementation "org.dcm4che:dcm4che-imageio:${dcm4cheVersion}"
+    implementation "org.dcm4che:dcm4che-image:${dcm4cheVersion}"
+    implementation "org.dcm4che:dcm4che-json:${dcm4cheVersion}"
+    implementation "org.dcm4che:dcm4che-dict:${dcm4cheVersion}"
+
+    // Database
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Utilities
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'commons-io:commons-io:2.15.1'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// Configure encoding
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+

@@ -1,0 +1,672 @@
+[Log] [StudyBrowser] loadSeriesInViewer called: – {studyUid: "2.25.260937123490611766199243779696308901576", seriesUid: "1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425"} (study-browser-pro.js, line 299)
+[Log] API Request: – "/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/instances?" (api-client.js, line 11)
+[Log] API Response status: – 200 (api-client.js, line 22)
+[Log] API Response data: – "Array with 221 items" (api-client.js, line 33)
+[Log] set3DLayout called (tools.js, line 469)
+[Log] reconstruction3D module found (tools.js, line 473)
+[Log] Initializing Advanced 3D Reconstruction Module... (reconstruction-3d.js, line 263)
+[Log] 3D Reconstruction module initialized (reconstruction-3d.js, line 276)
+[Log] reconstruction3D initialized, setting up layout (tools.js, line 476)
+[Log] Current series from appState: – "1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425" (tools.js, line 488)
+[Log] appState.currentSeries: – {studyInstanceUid: "2.25.260937123490611766199243779696308901576", seriesInstanceUid: "1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425", modality: "CT", …} (tools.js, line 489)
+{studyInstanceUid: "2.25.260937123490611766199243779696308901576", seriesInstanceUid: "1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425", modality: "CT", seriesNumber: 3, seriesDescription: "BRAIN PLAIN 2.00 ax THIN SOFT", …}Object
+[Log] Loading series for 3D: – "1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425" (tools.js, line 529)
+[Log] API Request: – "/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/instances?" (api-client.js, line 11)
+[Log] API Response status: – 200 (api-client.js, line 22)
+[Log] API Response data: – "Array with 221 items" (api-client.js, line 33)
+[Log] Fetched – 221 – "instances for 3D" (tools.js, line 535)
+[Log] Loading 3D volume with – 221 – "images" (tools.js, line 549)
+[Log] loadVolume called with – 221 – "images" (reconstruction-3d.js, line 681)
+[Log] Loading 3D volume rendering (reconstruction-3d.js, line 734)
+[Log] Study UID: – "2.25.260937123490611766199243779696308901576" (reconstruction-3d.js, line 735)
+[Log] Series UID: – "1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425" (reconstruction-3d.js, line 736)
+[Log] Viewport element: –  (reconstruction-3d.js, line 745)
+<div class="viewport-element" id="viewport-element-3d-0" style="position: relative; width: 100%; height: 100%;">…</div>
+
+<div class="viewport-element" id="viewport-element-3d-0" style="position: relative; width: 100%; height: 100%;">…</div>
+[Log] Resizing canvas to: – 1020 – "x" – 849.984375 (reconstruction-3d.js, line 1202)
+[Log] WebGL Capabilities: – {maxTextureSize: 16384, max3DTextureSize: 2048, vendor: "WebKit", …} (webgl-volume-renderer.js, line 98)
+{maxTextureSize: 16384, max3DTextureSize: 2048, vendor: "WebKit", renderer: "WebKit WebGL"}Object
+[Log] WebGL Volume Renderer initialized (webgl-volume-renderer.js, line 83)
+[Log] Max 3D texture size: 2048 (webgl-volume-renderer.js, line 84)
+[Log] Recommended max dimension: – 512 (reconstruction-3d.js, line 1030)
+[Log] Loading initial low-res volume (subsample=4)... (webgl-volume-loader.js, line 56)
+[Log] Loading volume data: subsample=4 (webgl-volume-loader.js, line 123)
+[Log] Fetching volume pixel data: – "/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/pixeldata?sub…" (api-client.js, line 339)
+"/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/pixeldata?subsample=4"
+[Log] [VolumeLoader] Content-Type: – "multipart/related;boundary=----VolumeDataBoundary1767288798702" (webgl-volume-loader.js, line 165)
+[Log] [VolumeLoader] Boundary: – "----VolumeDataBoundary1767288798702" (webgl-volume-loader.js, line 174)
+[Log] [VolumeLoader] Response arrayBuffer size: – 33031664 – "bytes" (webgl-volume-loader.js, line 177)
+[Log] [VolumeLoader] Found – 3 – "parts in multipart response" (webgl-volume-loader.js, line 185)
+[Log] [VolumeLoader] Part 0 size: – 1329 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Part 1 size: – 33030212 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Part 2 size: – 4 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Metadata text (first 500 chars): – "{\"studyInstanceUid\":\"2.25.260937123490611766199243779696308901576\",\"seriesInstanceUid\":\"1.3.12.2.1107.5.1.7.120521.3000002207041413065900000…" (webgl-volume-loader.js, line 197)
+"{\"studyInstanceUid\":\"2.25.260937123490611766199243779696308901576\",\"seriesInstanceUid\":\"1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425\",\"rows\":576,\"columns\":512,\"sliceCount\":56,\"bitsAllocated\":16,\"bitsStored\":16,\"highBit\":15,\"pixelRepresentation\":0,\"photometricInterpretation\":\"MONOCHROME2\",\"rescaleSlope\":1.0,\"rescaleIntercept\":-8192.0,\"rescaleType\":\"HU\",\"sliceThickness\":2.0,\"spacingBetweenSlices\":8.0,\"pixelSpacing\":[0.359578125,0.359578125],\"imagePositionPatient\":[-90.9372827,-282.4425"
+[Log] [VolumeLoader] Parsed volume metadata: – "{↵  \"studyInstanceUid\": \"2.25.260937123490611766199243779696308901576\",↵  \"seriesInstanceUid\"…" (webgl-volume-loader.js, line 204)
+"{
+  \"studyInstanceUid\": \"2.25.260937123490611766199243779696308901576\",
+  \"seriesInstanceUid\": \"1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425\",
+  \"rows\": 576,
+  \"columns\": 512,
+  \"sliceCount\": 56,
+  \"bitsAllocated\": 16,
+  \"bitsStored\": 16,
+  \"highBit\": 15,
+  \"pixelRepresentation\": 0,
+  \"photometricInterpretation\": \"MONOCHROME2\",
+  \"rescaleSlope\": 1,
+  \"rescaleIntercept\": -8192,
+  \"rescaleType\": \"HU\",
+  \"sliceThickness\": 2,
+  \"spacingBetweenSlices\": 8,
+  \"pixelSpacing\": [
+    0.359578125,
+    0.359578125
+  ],
+  \"imagePositionPatient\": [
+    -90.9372827,
+    -282.4425434,
+    -1063.174072
+  ],
+  \"imageOrientationPatient\": [
+    0.99748331283545,
+    -0.01826490412,
+    -0.068508641,
+    -0.005682265198,
+    0.94254756731203,
+    -0.3340236447
+  ],
+  \"slicePositions\": [
+    -1103.99,
+    -1100.23,
+    -1096.469,
+    -1092.709,
+    -1088.949,
+    -1085.189,
+    -1081.428,
+    -1077.668,
+    -1073.908,
+    -1070.147,
+    -1066.387,
+    -1062.627,
+    -1058.867,
+    -1055.106,
+    -1051.346,
+    -1047.586,
+    -1043.825,
+    -1040.065,
+    -1036.305,
+    -1032.545,
+    -1028.784,
+    -1025.024,
+    -1021.264,
+    -1017.503,
+    -1013.743,
+    -1009.983,
+    -1006.223,
+    -1002.462,
+    -998.702,
+    -994.942,
+    -991.181,
+    -987.421,
+    -983.661,
+    -979.901,
+    -976.14,
+    -972.38,
+    -968.62,
+    -964.859,
+    -961.099,
+    -957.339,
+    -953.579,
+    -949.818,
+    -946.058,
+    -942.298,
+    -938.537,
+    -934.777,
+    -931.017,
+    -927.257,
+    -923.496,
+    -919.736,
+    -915.976,
+    -912.215,
+    -908.455,
+    -904.695,
+    -900.935,
+    -897.174
+  ],
+  \"dataFormat\": \"UINT16\",
+  \"totalBytes\": 33030144,
+  \"subsampleFactor\": 4,
+  \"originalSliceCount\": 221
+}"
+[Log] [VolumeLoader] Pixel data ArrayBuffer size: – 33030144 – "bytes" (webgl-volume-loader.js, line 205)
+[Log] [VolumeLoader] Expected size for 16-bit data: – 33030144 – "bytes" (webgl-volume-loader.js, line 206)
+[Log] [VolumeLoader] Converting to HU: slope=1, intercept=-8192, signed=false (webgl-volume-loader.js, line 290)
+[Log] [VolumeLoader] pixelData type: ArrayBuffer, byteLength=33030144 (webgl-volume-loader.js, line 291)
+[Log] [VolumeLoader] Expected pixel count: 16515072 (webgl-volume-loader.js, line 300)
+[Log] [VolumeLoader] Created Uint16Array with length: 16515072 (webgl-volume-loader.js, line 307)
+[Log] [VolumeLoader] Sample raw pixel values: (webgl-volume-loader.js, line 315)
+[Log]   [0]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [1]: raw=7185, HU=-1007 (webgl-volume-loader.js, line 318)
+[Log]   [10]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [100]: raw=7184, HU=-1008 (webgl-volume-loader.js, line 318)
+[Log]   [1000]: raw=7192, HU=-1000 (webgl-volume-loader.js, line 318)
+[Log]   [4128768]: raw=7190, HU=-1002 (webgl-volume-loader.js, line 318)
+[Log]   [8257536]: raw=7191, HU=-1001 (webgl-volume-loader.js, line 318)
+[Log]   [16515071]: raw=7244, HU=-948 (webgl-volume-loader.js, line 318)
+[Log] [VolumeLoader] Raw pixel range (first 100k): 7180 to 9678 (webgl-volume-loader.js, line 330)
+[Log] [VolumeLoader] Zeros in first 100k: 0 (webgl-volume-loader.js, line 331)
+[Log] [VolumeLoader] HU range (first 10k): -1012 to -881, avg=-988 (webgl-volume-loader.js, line 347)
+[Log] Volume load progress: – {phase: "initial", subsample: 4, sliceCount: 56, …} (reconstruction-3d.js, line 1045)
+{phase: "initial", subsample: 4, sliceCount: 56, originalSliceCount: 221}Object
+[Log] Initial volume loaded: – {width: 512, height: 576, depth: 56} (reconstruction-3d.js, line 1064)
+[Log] Volume spacing: – {x: 0.359578125, y: 0.359578125, z: 8} (reconstruction-3d.js, line 1065)
+[Log] Uploading 3D texture: 512x576x56, data length: 16515072 (webgl-volume-renderer.js, line 406)
+[Log] Volume HU range: -8192 to 2901 (webgl-volume-renderer.js, line 437)
+[Log] Float texture extension: – "supported" (webgl-volume-renderer.js, line 458)
+[Log] Uploaded as R32F texture (webgl-volume-renderer.js, line 474)
+[Log] Volume texture uploaded successfully (webgl-volume-renderer.js, line 506)
+[Log] Calling initial render... (reconstruction-3d.js, line 1096)
+[Log] Rendering: 1020x849, mode=MIP, brightness=1 (webgl-volume-renderer.js, line 656)
+[Log] Applying preset: – "ct-bone" – {name: "CT Bone", description: "High-density bone visualization", modality: "CT", …} (reconstruction-3d.js, line 1767)
+{name: "CT Bone", description: "High-density bone visualization", modality: "CT", colorPoints: Array, opacityPoints: Array}Object
+[Log] Rendering: 1020x849, mode=MIP, brightness=1 (webgl-volume-renderer.js, line 656)
+[Log] Enhancing: subsample=2, 2 passes remaining (reconstruction-3d.js, line 1056)
+[Log] Enhancing volume (subsample=2)... (webgl-volume-loader.js, line 91)
+[Log] Loading volume data: subsample=2 (webgl-volume-loader.js, line 123)
+[Log] Fetching volume pixel data: – "/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/pixeldata?sub…" (api-client.js, line 339)
+"/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/pixeldata?subsample=2"
+[Log] [VolumeLoader] Content-Type: – "multipart/related;boundary=----VolumeDataBoundary1767288834751" (webgl-volume-loader.js, line 165)
+[Log] [VolumeLoader] Boundary: – "----VolumeDataBoundary1767288834751" (webgl-volume-loader.js, line 174)
+[Log] [VolumeLoader] Response arrayBuffer size: – 65472501 – "bytes" (webgl-volume-loader.js, line 177)
+[Log] [VolumeLoader] Found – 3 – "parts in multipart response" (webgl-volume-loader.js, line 185)
+[Log] [VolumeLoader] Part 0 size: – 1846 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Part 1 size: – 65470532 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Part 2 size: – 4 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Metadata text (first 500 chars): – "{\"studyInstanceUid\":\"2.25.260937123490611766199243779696308901576\",\"seriesInstanceUid\":\"1.3.12.2.1107.5.1.7.120521.3000002207041413065900000…" (webgl-volume-loader.js, line 197)
+"{\"studyInstanceUid\":\"2.25.260937123490611766199243779696308901576\",\"seriesInstanceUid\":\"1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425\",\"rows\":576,\"columns\":512,\"sliceCount\":111,\"bitsAllocated\":16,\"bitsStored\":16,\"highBit\":15,\"pixelRepresentation\":0,\"photometricInterpretation\":\"MONOCHROME2\",\"rescaleSlope\":1.0,\"rescaleIntercept\":-8192.0,\"rescaleType\":\"HU\",\"sliceThickness\":2.0,\"spacingBetweenSlices\":4.0,\"pixelSpacing\":[0.359578125,0.359578125],\"imagePositionPatient\":[-90.9372827,-282.442"
+[Log] [VolumeLoader] Parsed volume metadata: – "{↵  \"studyInstanceUid\": \"2.25.260937123490611766199243779696308901576\",↵  \"seriesInstanceUid\"…" (webgl-volume-loader.js, line 204)
+"{
+  \"studyInstanceUid\": \"2.25.260937123490611766199243779696308901576\",
+  \"seriesInstanceUid\": \"1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425\",
+  \"rows\": 576,
+  \"columns\": 512,
+  \"sliceCount\": 111,
+  \"bitsAllocated\": 16,
+  \"bitsStored\": 16,
+  \"highBit\": 15,
+  \"pixelRepresentation\": 0,
+  \"photometricInterpretation\": \"MONOCHROME2\",
+  \"rescaleSlope\": 1,
+  \"rescaleIntercept\": -8192,
+  \"rescaleType\": \"HU\",
+  \"sliceThickness\": 2,
+  \"spacingBetweenSlices\": 4,
+  \"pixelSpacing\": [
+    0.359578125,
+    0.359578125
+  ],
+  \"imagePositionPatient\": [
+    -90.9372827,
+    -282.4425434,
+    -1063.174072
+  ],
+  \"imageOrientationPatient\": [
+    0.99748331283545,
+    -0.01826490412,
+    -0.068508641,
+    -0.005682265198,
+    0.94254756731203,
+    -0.3340236447
+  ],
+  \"slicePositions\": [
+    -1103.99,
+    -1102.11,
+    -1100.23,
+    -1098.35,
+    -1096.469,
+    -1094.589,
+    -1092.709,
+    -1090.829,
+    -1088.949,
+    -1087.069,
+    -1085.189,
+    -1083.308,
+    -1081.428,
+    -1079.548,
+    -1077.668,
+    -1075.788,
+    -1073.908,
+    -1072.028,
+    -1070.147,
+    -1068.267,
+    -1066.387,
+    -1064.507,
+    -1062.627,
+    -1060.747,
+    -1058.867,
+    -1056.986,
+    -1055.106,
+    -1053.226,
+    -1051.346,
+    -1049.466,
+    -1047.586,
+    -1045.706,
+    -1043.825,
+    -1041.945,
+    -1040.065,
+    -1038.185,
+    -1036.305,
+    -1034.425,
+    -1032.545,
+    -1030.664,
+    -1028.784,
+    -1026.904,
+    -1025.024,
+    -1023.144,
+    -1021.264,
+    -1019.384,
+    -1017.503,
+    -1015.623,
+    -1013.743,
+    -1011.863,
+    -1009.983,
+    -1008.103,
+    -1006.223,
+    -1004.342,
+    -1002.462,
+    -1000.582,
+    -998.702,
+    -996.822,
+    -994.942,
+    -993.062,
+    -991.181,
+    -989.301,
+    -987.421,
+    -985.541,
+    -983.661,
+    -981.781,
+    -979.901,
+    -978.02,
+    -976.14,
+    -974.26,
+    -972.38,
+    -970.5,
+    -968.62,
+    -966.74,
+    -964.859,
+    -962.979,
+    -961.099,
+    -959.219,
+    -957.339,
+    -955.459,
+    -953.579,
+    -951.698,
+    -949.818,
+    -947.938,
+    -946.058,
+    -944.178,
+    -942.298,
+    -940.418,
+    -938.537,
+    -936.657,
+    -934.777,
+    -932.897,
+    -931.017,
+    -929.137,
+    -927.257,
+    -925.376,
+    -923.496,
+    -921.616,
+    -919.736,
+    -917.856,
+    -915.976,
+    -914.096,
+    -912.215,
+    -910.335,
+    -908.455,
+    -906.575,
+    -904.695,
+    -902.815,
+    -900.935,
+    -899.054,
+    -897.174
+  ],
+  \"dataFormat\": \"UINT16\",
+  \"totalBytes\": 65470464,
+  \"subsampleFactor\": 2,
+  \"originalSliceCount\": 221
+}"
+[Log] [VolumeLoader] Pixel data ArrayBuffer size: – 65470464 – "bytes" (webgl-volume-loader.js, line 205)
+[Log] [VolumeLoader] Expected size for 16-bit data: – 65470464 – "bytes" (webgl-volume-loader.js, line 206)
+[Log] [VolumeLoader] Converting to HU: slope=1, intercept=-8192, signed=false (webgl-volume-loader.js, line 290)
+[Log] [VolumeLoader] pixelData type: ArrayBuffer, byteLength=65470464 (webgl-volume-loader.js, line 291)
+[Log] [VolumeLoader] Expected pixel count: 32735232 (webgl-volume-loader.js, line 300)
+[Log] [VolumeLoader] Created Uint16Array with length: 32735232 (webgl-volume-loader.js, line 307)
+[Log] [VolumeLoader] Sample raw pixel values: (webgl-volume-loader.js, line 315)
+[Log]   [0]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [1]: raw=7185, HU=-1007 (webgl-volume-loader.js, line 318)
+[Log]   [10]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [100]: raw=7184, HU=-1008 (webgl-volume-loader.js, line 318)
+[Log]   [1000]: raw=7192, HU=-1000 (webgl-volume-loader.js, line 318)
+[Log]   [8183808]: raw=7192, HU=-1000 (webgl-volume-loader.js, line 318)
+[Log]   [16367616]: raw=7188, HU=-1004 (webgl-volume-loader.js, line 318)
+[Log]   [32735231]: raw=7244, HU=-948 (webgl-volume-loader.js, line 318)
+[Log] [VolumeLoader] Raw pixel range (first 100k): 7180 to 9678 (webgl-volume-loader.js, line 330)
+[Log] [VolumeLoader] Zeros in first 100k: 0 (webgl-volume-loader.js, line 331)
+[Log] [VolumeLoader] HU range (first 10k): -1012 to -881, avg=-988 (webgl-volume-loader.js, line 347)
+[Log] Volume load progress: – {phase: "enhancing", subsample: 2, sliceCount: 111, …} (reconstruction-3d.js, line 1045)
+{phase: "enhancing", subsample: 2, sliceCount: 111, originalSliceCount: 221, data: Object}Object
+[Log] Updating volume texture: 512×576×111 (reconstruction-3d.js, line 1141)
+[Log] Uploading 3D texture: 512x576x111, data length: 32735232 (webgl-volume-renderer.js, line 406)
+[Log] Volume HU range: -8192 to 2986 (webgl-volume-renderer.js, line 437)
+[Log] Float texture extension: – "supported" (webgl-volume-renderer.js, line 458)
+[Log] Uploaded as R32F texture (webgl-volume-renderer.js, line 474)
+[Log] Volume texture uploaded successfully (webgl-volume-renderer.js, line 506)
+[Log] Rendering: 1020x849, mode=MIP, brightness=1 (webgl-volume-renderer.js, line 656)
+[Log] Enhancement pass 2 complete (webgl-volume-loader.js, line 109)
+[Log] Rendering: 1020x849, mode=MIP, brightness=1 (webgl-volume-renderer.js, line 656, x5)
+[Log] Enhancing: subsample=1, 1 passes remaining (reconstruction-3d.js, line 1056)
+[Log] Enhancing volume (subsample=1)... (webgl-volume-loader.js, line 91)
+[Log] Loading volume data: subsample=1 (webgl-volume-loader.js, line 123)
+[Log] Fetching volume pixel data: – "/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/pixeldata?sub…" (api-client.js, line 339)
+"/dicomweb/studies/2.25.260937123490611766199243779696308901576/series/1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425/pixeldata?subsample=1"
+[Log] Applying preset: – "mr-mra" – {name: "MR Angiography", description: "MRA vessel visualization", renderMode: "MIP", …} (reconstruction-3d.js, line 1767)
+{name: "MR Angiography", description: "MRA vessel visualization", renderMode: "MIP", colorMap: "grayscale", windowCenter: 500, …}Object
+[Log] Rendering: 1020x849, mode=MIP, brightness=1 (webgl-volume-renderer.js, line 656)
+[Log] Rendering: 1020x849, mode=MIP, brightness=1 (webgl-volume-renderer.js, line 656)
+[Log] [VolumeLoader] Content-Type: – "multipart/related;boundary=----VolumeDataBoundary1767288868841" (webgl-volume-loader.js, line 165)
+[Log] [VolumeLoader] Boundary: – "----VolumeDataBoundary1767288868841" (webgl-volume-loader.js, line 174)
+[Log] [VolumeLoader] Response arrayBuffer size: – 130354177 – "bytes" (webgl-volume-loader.js, line 177)
+[Log] [VolumeLoader] Found – 3 – "parts in multipart response" (webgl-volume-loader.js, line 185)
+[Log] [VolumeLoader] Part 0 size: – 2881 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Part 1 size: – 130351173 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Part 2 size: – 4 – "bytes" (webgl-volume-loader.js, line 187)
+[Log] [VolumeLoader] Metadata text (first 500 chars): – "{\"studyInstanceUid\":\"2.25.260937123490611766199243779696308901576\",\"seriesInstanceUid\":\"1.3.12.2.1107.5.1.7.120521.3000002207041413065900000…" (webgl-volume-loader.js, line 197)
+"{\"studyInstanceUid\":\"2.25.260937123490611766199243779696308901576\",\"seriesInstanceUid\":\"1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425\",\"rows\":576,\"columns\":512,\"sliceCount\":221,\"bitsAllocated\":16,\"bitsStored\":16,\"highBit\":15,\"pixelRepresentation\":0,\"photometricInterpretation\":\"MONOCHROME2\",\"rescaleSlope\":1.0,\"rescaleIntercept\":-8192.0,\"rescaleType\":\"HU\",\"sliceThickness\":2.0,\"spacingBetweenSlices\":2.0,\"pixelSpacing\":[0.359578125,0.359578125],\"imagePositionPatient\":[-90.9372827,-282.442"
+[Log] [VolumeLoader] Parsed volume metadata: – "{↵  \"studyInstanceUid\": \"2.25.260937123490611766199243779696308901576\",↵  \"seriesInstanceUid\"…" (webgl-volume-loader.js, line 204)
+"{
+  \"studyInstanceUid\": \"2.25.260937123490611766199243779696308901576\",
+  \"seriesInstanceUid\": \"1.3.12.2.1107.5.1.7.120521.30000022070414130659000000425\",
+  \"rows\": 576,
+  \"columns\": 512,
+  \"sliceCount\": 221,
+  \"bitsAllocated\": 16,
+  \"bitsStored\": 16,
+  \"highBit\": 15,
+  \"pixelRepresentation\": 0,
+  \"photometricInterpretation\": \"MONOCHROME2\",
+  \"rescaleSlope\": 1,
+  \"rescaleIntercept\": -8192,
+  \"rescaleType\": \"HU\",
+  \"sliceThickness\": 2,
+  \"spacingBetweenSlices\": 2,
+  \"pixelSpacing\": [
+    0.359578125,
+    0.359578125
+  ],
+  \"imagePositionPatient\": [
+    -90.9372827,
+    -282.4425434,
+    -1063.174072
+  ],
+  \"imageOrientationPatient\": [
+    0.99748331283545,
+    -0.01826490412,
+    -0.068508641,
+    -0.005682265198,
+    0.94254756731203,
+    -0.3340236447
+  ],
+  \"slicePositions\": [
+    -1103.99,
+    -1103.05,
+    -1102.11,
+    -1101.17,
+    -1100.23,
+    -1099.29,
+    -1098.35,
+    -1097.409,
+    -1096.469,
+    -1095.529,
+    -1094.589,
+    -1093.649,
+    -1092.709,
+    -1091.769,
+    -1090.829,
+    -1089.889,
+    -1088.949,
+    -1088.009,
+    -1087.069,
+    -1086.129,
+    -1085.189,
+    -1084.248,
+    -1083.308,
+    -1082.368,
+    -1081.428,
+    -1080.488,
+    -1079.548,
+    -1078.608,
+    -1077.668,
+    -1076.728,
+    -1075.788,
+    -1074.848,
+    -1073.908,
+    -1072.968,
+    -1072.028,
+    -1071.087,
+    -1070.147,
+    -1069.207,
+    -1068.267,
+    -1067.327,
+    -1066.387,
+    -1065.447,
+    -1064.507,
+    -1063.567,
+    -1062.627,
+    -1061.687,
+    -1060.747,
+    -1059.807,
+    -1058.867,
+    -1057.926,
+    -1056.986,
+    -1056.046,
+    -1055.106,
+    -1054.166,
+    -1053.226,
+    -1052.286,
+    -1051.346,
+    -1050.406,
+    -1049.466,
+    -1048.526,
+    -1047.586,
+    -1046.646,
+    -1045.706,
+    -1044.765,
+    -1043.825,
+    -1042.885,
+    -1041.945,
+    -1041.005,
+    -1040.065,
+    -1039.125,
+    -1038.185,
+    -1037.245,
+    -1036.305,
+    -1035.365,
+    -1034.425,
+    -1033.485,
+    -1032.545,
+    -1031.604,
+    -1030.664,
+    -1029.724,
+    -1028.784,
+    -1027.844,
+    -1026.904,
+    -1025.964,
+    -1025.024,
+    -1024.084,
+    -1023.144,
+    -1022.204,
+    -1021.264,
+    -1020.324,
+    -1019.384,
+    -1018.443,
+    -1017.503,
+    -1016.563,
+    -1015.623,
+    -1014.683,
+    -1013.743,
+    -1012.803,
+    -1011.863,
+    -1010.923,
+    -1009.983,
+    -1009.043,
+    -1008.103,
+    -1007.163,
+    -1006.223,
+    -1005.282,
+    -1004.342,
+    -1003.402,
+    -1002.462,
+    -1001.522,
+    -1000.582,
+    -999.642,
+    -998.702,
+    -997.762,
+    -996.822,
+    -995.882,
+    -994.942,
+    -994.002,
+    -993.062,
+    -992.121,
+    -991.181,
+    -990.241,
+    -989.301,
+    -988.361,
+    -987.421,
+    -986.481,
+    -985.541,
+    -984.601,
+    -983.661,
+    -982.721,
+    -981.781,
+    -980.841,
+    -979.901,
+    -978.96,
+    -978.02,
+    -977.08,
+    -976.14,
+    -975.2,
+    -974.26,
+    -973.32,
+    -972.38,
+    -971.44,
+    -970.5,
+    -969.56,
+    -968.62,
+    -967.68,
+    -966.74,
+    -965.799,
+    -964.859,
+    -963.919,
+    -962.979,
+    -962.039,
+    -961.099,
+    -960.159,
+    -959.219,
+    -958.279,
+    -957.339,
+    -956.399,
+    -955.459,
+    -954.519,
+    -953.579,
+    -952.638,
+    -951.698,
+    -950.758,
+    -949.818,
+    -948.878,
+    -947.938,
+    -946.998,
+    -946.058,
+    -945.118,
+    -944.178,
+    -943.238,
+    -942.298,
+    -941.358,
+    -940.418,
+    -939.477,
+    -938.537,
+    -937.597,
+    -936.657,
+    -935.717,
+    -934.777,
+    -933.837,
+    -932.897,
+    -931.957,
+    -931.017,
+    -930.077,
+    -929.137,
+    -928.197,
+    -927.257,
+    -926.316,
+    -925.376,
+    -924.436,
+    -923.496,
+    -922.556,
+    -921.616,
+    -920.676,
+    -919.736,
+    -918.796,
+    -917.856,
+    -916.916,
+    -915.976,
+    -915.036,
+    -914.096,
+    -913.155,
+    -912.215,
+    -911.275,
+    -910.335,
+    -909.395,
+    -908.455,
+    -907.515,
+    -906.575,
+    -905.635,
+    -904.695,
+    -903.755,
+    -902.815,
+    -901.875,
+    -900.935,
+    -899.994,
+    -899.054,
+    -898.114,
+    -897.174
+  ],
+  \"dataFormat\": \"UINT16\",
+  \"totalBytes\": 130351104,
+  \"subsampleFactor\": 1,
+  \"originalSliceCount\": 221
+}"
+[Log] [VolumeLoader] Pixel data ArrayBuffer size: – 130351104 – "bytes" (webgl-volume-loader.js, line 205)
+[Log] [VolumeLoader] Expected size for 16-bit data: – 130351104 – "bytes" (webgl-volume-loader.js, line 206)
+[Log] [VolumeLoader] Converting to HU: slope=1, intercept=-8192, signed=false (webgl-volume-loader.js, line 290)
+[Log] [VolumeLoader] pixelData type: ArrayBuffer, byteLength=130351104 (webgl-volume-loader.js, line 291)
+[Log] [VolumeLoader] Expected pixel count: 65175552 (webgl-volume-loader.js, line 300)
+[Log] [VolumeLoader] Created Uint16Array with length: 65175552 (webgl-volume-loader.js, line 307)
+[Log] [VolumeLoader] Sample raw pixel values: (webgl-volume-loader.js, line 315)
+[Log]   [0]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [1]: raw=7185, HU=-1007 (webgl-volume-loader.js, line 318)
+[Log]   [10]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [100]: raw=7184, HU=-1008 (webgl-volume-loader.js, line 318)
+[Log]   [1000]: raw=7192, HU=-1000 (webgl-volume-loader.js, line 318)
+[Log]   [16293888]: raw=7186, HU=-1006 (webgl-volume-loader.js, line 318)
+[Log]   [32587776]: raw=7188, HU=-1004 (webgl-volume-loader.js, line 318)
+[Log]   [65175551]: raw=7244, HU=-948 (webgl-volume-loader.js, line 318)
+[Log] [VolumeLoader] Raw pixel range (first 100k): 7180 to 9678 (webgl-volume-loader.js, line 330)
+[Log] [VolumeLoader] Zeros in first 100k: 0 (webgl-volume-loader.js, line 331)
+[Log] [VolumeLoader] HU range (first 10k): -1012 to -881, avg=-988 (webgl-volume-loader.js, line 347)
+[Log] Volume load progress: – {phase: "complete", subsample: 1, sliceCount: 221, …} (reconstruction-3d.js, line 1045)
+{phase: "complete", subsample: 1, sliceCount: 221, originalSliceCount: 221, data: Object}Object
+[Log] Updating volume texture: 512×576×221 (reconstruction-3d.js, line 1141)
+[Log] Uploading 3D texture: 512x576x221, data length: 65175552 (webgl-volume-renderer.js, line 406)
+[Log] Volume HU range: -8192 to 2986 (webgl-volume-renderer.js, line 437)

@@ -1,0 +1,27 @@
+{
+  "name": "raster-pacs-viewer",
+  "version": "2.0.0",
+  "description": "Zero Footprint DICOM Viewer with Cornerstone3D and MPR Support",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@cornerstonejs/core": "^1.82.3",
+    "@cornerstonejs/tools": "^1.82.3",
+    "@cornerstonejs/dicom-image-loader": "^1.82.3",
+    "@cornerstonejs/streaming-image-volume-loader": "^1.82.3",
+    "@cornerstonejs/nifti-volume-loader": "^1.82.3",
+    "@kitware/vtk.js": "^30.2.0",
+    "dicom-parser": "^1.8.21",
+    "gl-matrix": "^3.4.3",
+    "dcmjs": "^0.29.12"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8",
+    "@types/gl-matrix": "^3.2.0"
+  }
+}
+

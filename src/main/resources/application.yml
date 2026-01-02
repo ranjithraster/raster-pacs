@@ -1,0 +1,80 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: raster-pacs
+  datasource:
+    url: jdbc:h2:file:./data/rasterpacs;DB_CLOSE_ON_EXIT=FALSE;FILE_LOCK=NO;AUTO_RECONNECT=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+# DICOM Configuration
+dicom:
+  # Local Application Entity settings
+  # IMPORTANT: For C-MOVE to work, the remote PACS must be able to reach
+  # your local DICOM SCP (this application) on the configured port.
+  local:
+    # Using same AE Title as remote PACS for recognition
+    # NOTE: You may need to register a different AE Title on the remote PACS
+    # and update this value for proper C-MOVE functionality
+    ae-title: TEAMPACS_TEST
+    # Address to bind to locally (0.0.0.0 = all interfaces)
+    bind-address: 0.0.0.0
+    # Public hostname/IP to advertise to external PACS (for NAT scenarios)
+    # Change this to your actual public IP if behind NAT
+    public-hostname: 223.226.5.159
+    # Deprecated: kept for backward compatibility, use bind-address instead
+    hostname: 0.0.0.0
+    # Local port to listen on for incoming DICOM connections
+    # Using different port from remote PACS to avoid conflicts
+    port: 4000
+
+  # Retrieve settings - C-GET vs C-MOVE
+  retrieve:
+    # Prefer C-GET over C-MOVE (C-GET doesn't require callback configuration)
+    prefer-cget: true
+    # If C-GET fails, fallback to C-MOVE
+    fallback-to-cmove: true
+
+  # Cache settings
+  cache:
+    path: ./dicom-cache
+    retention-days: 30
+    max-size-gb: 50
+    cleanup-cron: "0 0 2 * * ?"  # Run at 2 AM daily
+
+# PACS Node Configuration
+# NOTE: Configure your external PACS server here
+# Do NOT use the same port as your local DICOM SCP (11112)
+pacs:
+  nodes:
+    - name: DEFAULT_PACS
+      ae-title: TEAMPACS           # AE Title of your external PACS
+      hostname: 117.247.185.219   # IP or hostname of your PACS (NOT localhost if local SCP is on same port)
+      port: 11112                  # Port of your external PACS (must be different from local port 11112)
+      description: Default PACS Server
+      query-retrieve-level: STUDY
+
+# Logging
+logging:
+  level:
+    root: INFO
+    in.raster.rasterpacs: DEBUG
+    org.dcm4che3: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+

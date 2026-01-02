@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raster PACS Pro - Zero Footprint DICOM Viewer</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Premium Styles -->
+    <link rel="stylesheet" href="css/viewer-pro.css">
+    <link rel="stylesheet" href="css/mpr-viewer.css">
+    <link rel="stylesheet" href="css/reconstruction-3d.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230d0d18' rx='20' width='100' height='100'/><text y='.9em' font-size='80' x='50%' text-anchor='middle'>🏥</text></svg>">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ========== HEADER ========== -->
+        <header class="header">
+            <div class="header-left">
+                <h1>
+                    <span class="logo-icon">🏥</span>
+                    <span>Raster PACS Pro</span>
+                </h1>
+            </div>
+
+            <div class="header-center">
+                <div class="study-info-display" id="studyInfoDisplay">
+                    <div class="patient-badge">
+                        <span class="icon">👤</span>
+                        <span id="headerPatientName">No Study Loaded</span>
+                    </div>
+                    <div class="study-meta-badge" style="margin-left: 10px;">
+                        <span class="icon">📅</span>
+                        <span id="headerStudyDate">-</span>
+                    </div>
+                    <div class="study-meta-badge" style="margin-left: 10px;">
+                        <span class="icon">🔬</span>
+                        <span id="headerModality">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button class="header-btn" onclick="showKeyboardShortcuts()" title="Keyboard Shortcuts">
+                    <span>⌨️</span>
+                    <span>Shortcuts</span>
+                </button>
+                <a href="/settings.html" class="header-btn" title="Settings">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </a>
+                <div class="status-badge" id="serverStatusBadge">
+                    <span class="dot" id="serverStatus"></span>
+                    <span id="serverStatusText">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========== MAIN CONTAINER ========== -->
+        <div class="main-container">
+            <!-- ========== LEFT SIDEBAR - Study Browser ========== -->
+            <aside class="sidebar" id="studySidebar">
+                <div class="sidebar-header">
+                    <h3>
+                        <span class="icon">🔍</span>
+                        <span>Study Browser</span>
+                    </h3>
+                    <button class="collapse-btn" onclick="toggleSidebar()" title="Collapse Sidebar">
+                        <span>◀</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-content">
+                    <!-- Search Panel -->
+                    <div class="search-panel">
+                        <div class="search-grid">
+                            <input type="text" id="patientId" class="form-input" placeholder="Patient ID">
+                            <input type="text" id="patientName" class="form-input" placeholder="Patient Name">
+                            <input type="date" id="studyDateFrom" class="form-input" title="From Date">
+                            <input type="date" id="studyDateTo" class="form-input" title="To Date">
+                            <select id="modality" class="form-input form-select">
+                                <option value="">All Modalities</option>
+                                <option value="CT">CT - Computed Tomography</option>
+                                <option value="MR">MR - Magnetic Resonance</option>
+                                <option value="CR">CR - Computed Radiography</option>
+                                <option value="DX">DX - Digital Radiography</option>
+                                <option value="US">US - Ultrasound</option>
+                                <option value="XA">XA - X-Ray Angiography</option>
+                                <option value="NM">NM - Nuclear Medicine</option>
+                                <option value="PT">PT - PET</option>
+                                <option value="MG">MG - Mammography</option>
+                            </select>
+                            <input type="text" id="accessionNumber" class="form-input" placeholder="Accession #">
+                            <select id="pacsNode" class="form-input form-select full-width">
+                                <option value="">Default PACS Server</option>
+                            </select>
+                        </div>
+                        <div class="search-actions">
+                            <button class="btn btn-primary" onclick="searchStudies()">
+                                <span>🔍</span> Search PACS
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearSearch()">
+                                <span>✕</span> Clear
+                            </button>
+                            <button class="btn btn-accent" onclick="search3DCompatible()" title="Search for CT/MR studies suitable for 3D reconstruction">
+                                <span>🧊</span> Find 3D Studies
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div class="loading-container" id="searchLoading">
+                        <div class="loading-spinner"></div>
+                        <span class="loading-text">Searching PACS...</span>
+                    </div>
+
+                    <!-- Study List -->
+                    <div class="study-list-container">
+                        <div class="study-list-header" id="studyListHeader" style="display: none;">
+                            <span class="study-count">Found <strong id="studyCountNum">0</strong> studies</span>
+                            <button class="btn-icon" onclick="refreshSearch()" title="Refresh">🔄</button>
+                        </div>
+                        <div class="study-list" id="studyList">
+                            <div class="empty-state">
+                                <div class="icon">🔍</div>
+                                <h4>Search for Studies</h4>
+                                <p>Enter search criteria above to find DICOM studies</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Series Panel -->
+                    <div class="series-panel" id="seriesPanel">
+                        <div class="series-header">
+                            <h4>📂 Series</h4>
+                            <button class="btn-icon" onclick="closeSeriesPanel()">✕</button>
+                        </div>
+                        <div class="series-list" id="seriesList"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ========== VIEWER AREA ========== -->
+            <main class="viewer-container">
+                <!-- New Intuitive Toolbar -->
+                <div class="toolbar-container">
+                    <!-- Primary Toolbar Row -->
+                    <div class="toolbar toolbar-primary">
+                        <!-- Layout Selector -->
+                        <div class="toolbar-section layout-section">
+                            <div class="layout-grid">
+                                <button class="layout-tile active" data-layout="1x1" onclick="setLayout(1,1)" title="Single View">
+                                    <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor"/></svg>
+                                </button>
+                                <button class="layout-tile" data-layout="1x2" onclick="setLayout(1,2)" title="Side by Side">
+                                    <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="8" height="18" rx="1" fill="currentColor"/><rect x="13" y="3" width="8" height="18" rx="1" fill="currentColor"/></svg>
+                                </button>
+                                <button class="layout-tile" data-layout="2x2" onclick="setLayout(2,2)" title="Quad View">
+                                    <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="8" height="8" rx="1" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="1" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="1" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="1" fill="currentColor"/></svg>
+                                </button>
+                            </div>
+                            <div class="layout-special">
+                                <button class="special-layout-btn mpr" data-layout="mpr" onclick="setMPRLayout()" title="MPR - Axial/Sagittal/Coronal">
+                                    <span class="icon">🔲</span> MPR
+                                </button>
+                                <button class="special-layout-btn" data-layout="3d" onclick="set3DLayout()" title="3D Volume Rendering">
+                                    <span class="icon">🧊</span> 3D
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <!-- Mouse Tools -->
+                        <div class="toolbar-section tools-section">
+                            <div class="tool-group">
+                                <button class="tool-btn active" data-tool="WindowLevel" onclick="setTool('WindowLevel')" title="Window/Level (W) - Drag to adjust brightness/contrast">
+                                    <span class="tool-icon">🌓</span>
+                                    <span class="tool-label">W/L</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Pan" onclick="setTool('Pan')" title="Pan (P) - Drag to move image">
+                                    <span class="tool-icon">✋</span>
+                                    <span class="tool-label">Pan</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Zoom" onclick="setTool('Zoom')" title="Zoom (Z) - Drag up/down to zoom">
+                                    <span class="tool-icon">🔍</span>
+                                    <span class="tool-label">Zoom</span>
+                                </button>
+                                <button class="tool-btn" data-tool="StackScroll" onclick="setTool('StackScroll')" title="Stack Scroll (S) - Scroll through images">
+                                    <span class="tool-icon">📚</span>
+                                    <span class="tool-label">Scroll</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <!-- Measurements -->
+                        <div class="toolbar-section measure-section">
+                            <div class="tool-group">
+                                <button class="tool-btn" data-tool="Length" onclick="setMeasureTool('length')" title="Length Measurement (L)">
+                                    <span class="tool-icon">📏</span>
+                                    <span class="tool-label">Length</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Angle" onclick="setMeasureTool('angle')" title="Angle Measurement (A)">
+                                    <span class="tool-icon">📐</span>
+                                    <span class="tool-label">Angle</span>
+                                </button>
+                                <button class="tool-btn" data-tool="EllipticalROI" onclick="setMeasureTool('ellipse')" title="Ellipse ROI">
+                                    <span class="tool-icon">⭕</span>
+                                    <span class="tool-label">Ellipse</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Rectangle" onclick="setMeasureTool('rectangle')" title="Rectangle ROI">
+                                    <span class="tool-icon">▢</span>
+                                    <span class="tool-label">Rect</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Freehand" onclick="setMeasureTool('freehand')" title="Freehand ROI">
+                                    <span class="tool-icon">✏️</span>
+                                    <span class="tool-label">Free</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Arrow" onclick="setMeasureTool('arrow')" title="Arrow Annotation">
+                                    <span class="tool-icon">➤</span>
+                                    <span class="tool-label">Arrow</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Probe" onclick="setMeasureTool('probe')" title="Probe (HU Value)">
+                                    <span class="tool-icon">🎯</span>
+                                    <span class="tool-label">Probe</span>
+                                </button>
+                                <button class="tool-btn" data-tool="Text" onclick="setMeasureTool('text')" title="Text Annotation">
+                                    <span class="tool-icon">T</span>
+                                    <span class="tool-label">Text</span>
+                                </button>
+                            </div>
+                            <button class="icon-btn danger" onclick="clearMeasurements()" title="Clear All Measurements">🗑️</button>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <!-- Quick Actions -->
+                        <div class="toolbar-section actions-section">
+                            <button class="icon-btn" onclick="resetViewport()" title="Reset View (R)">↺</button>
+                            <button class="icon-btn" onclick="flipHorizontal()" title="Flip Horizontal (H)">↔️</button>
+                            <button class="icon-btn" onclick="flipVertical()" title="Flip Vertical (V)">↕️</button>
+                            <button class="icon-btn" onclick="rotate(90)" title="Rotate 90° ([/])">🔄</button>
+                            <button class="icon-btn" onclick="invertColors()" title="Invert Colors (I)">◐</button>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <!-- W/L Preset Dropdown -->
+                        <div class="toolbar-section preset-section">
+                            <select id="wlPreset" class="preset-select" onchange="applyWLPreset(this.value)" title="Window/Level Presets">
+                                <option value="">🎨 Auto</option>
+                                <option value="brain">🧠 Brain</option>
+                                <option value="lung">🫁 Lung</option>
+                                <option value="bone">🦴 Bone</option>
+                                <option value="abdomen">🩻 Abdomen</option>
+                                <option value="liver">🫀 Liver</option>
+                            </select>
+                        </div>
+
+                        <!-- Spacer -->
+                        <div class="toolbar-spacer"></div>
+
+                        <!-- Cine Player (compact) -->
+                        <div class="toolbar-section cine-section" id="cineSection">
+                            <button class="cine-btn" onclick="cinePlay()" id="cinePlayBtn" title="Play/Pause Cine (Space)">▶️</button>
+                            <input type="range" class="cine-slider" id="cineSpeed" min="1" max="60" value="15" onchange="setCineSpeed(this.value)" title="Playback Speed">
+                            <span class="cine-fps" id="cineSpeedLabel">15fps</span>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <!-- Report -->
+                        <div class="toolbar-section">
+                            <button class="report-btn" onclick="openReportEditor()" title="Create/Edit Report">
+                                <span>📋</span> Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Toolbar Row (context-sensitive) -->
+                    <div class="toolbar toolbar-secondary" id="secondaryToolbar">
+                        <!-- View Controls - Always visible -->
+                        <div class="toolbar-section view-controls-section" id="viewControls">
+                            <span class="section-label">View:</span>
+                            <div class="slider-control">
+                                <label>Zoom:</label>
+                                <input type="range" class="zoom-slider" id="zoomSlider" min="10" max="500" value="100"
+                                       oninput="applyZoom(this.value)" title="Zoom Level">
+                                <span class="slider-value" id="zoomValue">100%</span>
+                                <button class="mini-btn" onclick="resetZoom()" title="Reset Zoom">⟲</button>
+                            </div>
+                            <div class="slider-control">
+                                <label>W/L:</label>
+                                <input type="range" class="ww-slider" id="windowWidthSlider" min="1" max="4000" value="400"
+                                       oninput="applyWindowWidth(this.value)" title="Window Width">
+                                <input type="range" class="wc-slider" id="windowCenterSlider" min="-1000" max="3000" value="40"
+                                       oninput="applyWindowCenter(this.value)" title="Window Center">
+                            </div>
+                            <button class="mini-btn" onclick="resetPan()" title="Reset Pan">↺ Pan</button>
+                            <button class="mini-btn" onclick="fitToWindow()" title="Fit to Window">⬜ Fit</button>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <!-- Segmentation Tools -->
+                        <div class="toolbar-section seg-section" id="segmentationTools">
+                            <span class="section-label">Segmentation:</span>
+                            <div class="seg-tool-group">
+                                <button class="seg-btn" data-tool="brush" onclick="setSegTool('brush')" title="Brush (B)">
+                                    <span>🖌️</span> Brush
+                                </button>
+                                <button class="seg-btn" data-tool="eraser" onclick="setSegTool('eraser')" title="Eraser (E)">
+                                    <span>🧹</span> Eraser
+                                </button>
+                                <button class="seg-btn" data-tool="fill" onclick="setSegTool('fill')" title="Fill (F)">
+                                    <span>🪣</span> Fill
+                                </button>
+                            </div>
+                            <input type="range" class="brush-size-slider" id="brushSizeToolbar" min="1" max="50" value="10" title="Brush Size">
+                            <button class="seg-action-btn" onclick="showSegmentPanel()">📊 Segments</button>
+                        </div>
+
+                        <!-- MPR Controls (shown when MPR active) -->
+                        <div class="toolbar-section mpr-section" id="mprControls" style="display: none;">
+                            <span class="section-label">MPR Options:</span>
+                            <button class="mpr-action-btn active" onclick="mprViewer?.synchronizer?.toggle()" title="Sync scroll across views">
+                                <span>🔗</span> Sync
+                            </button>
+                            <button class="mpr-action-btn" onclick="mprViewer?.referenceLineManager?.toggle()" title="Show crosshair reference lines">
+                                <span>✚</span> Crosshairs
+                            </button>
+                            <select class="mpr-select" onchange="mprViewer?.setSliceThickness(this.value)" title="Slice Thickness">
+                                <option value="1">1mm</option>
+                                <option value="3">3mm</option>
+                                <option value="5">5mm</option>
+                                <option value="10">10mm MIP</option>
+                            </select>
+                        </div>
+
+                        <!-- 3D Controls (shown when 3D active) -->
+                        <div class="toolbar-section 3d-section" id="renderingControls" style="display: none;">
+                            <span class="section-label">3D Rendering:</span>
+                            <div class="render-mode-buttons">
+                                <button class="mode-mini-btn active" data-mode="VR" onclick="reconstruction3D?.setRenderMode('VR')" title="Volume Rendering">VR</button>
+                                <button class="mode-mini-btn" data-mode="MIP" onclick="reconstruction3D?.setRenderMode('MIP')" title="MIP">MIP</button>
+                                <button class="mode-mini-btn" data-mode="MinIP" onclick="reconstruction3D?.setRenderMode('MinIP')" title="MinIP">MinIP</button>
+                                <button class="mode-mini-btn" data-mode="Surface" onclick="reconstruction3D?.setRenderMode('Surface')" title="Surface">Surf</button>
+                            </div>
+                            <select id="renderingPreset" class="preset-select" onchange="apply3DPreset(this.value)">
+                                <option value="">Select Preset...</option>
+                                <option value="ct-bone">🦴 CT Bone</option>
+                                <option value="ct-soft-tissue">🫀 Soft Tissue</option>
+                                <option value="ct-skin">👤 Skin</option>
+                                <option value="ct-lung">🫁 Lung</option>
+                                <option value="ct-vascular">🩸 Vascular (CTA)</option>
+                                <option value="ct-cardiac">❤️ Cardiac</option>
+                                <option value="mip">📊 MIP</option>
+                                <option value="minip">📉 MinIP</option>
+                            </select>
+                            <label class="opacity-control">
+                                <span>Quality:</span>
+                                <input type="range" id="qualitySlider" min="25" max="100" value="100"
+                                       onchange="reconstruction3D?.setSampleDistance((100-this.value)/25 + 0.5)">
+                            </label>
+                            <button class="mini-btn" onclick="reconstruction3D?.resetCamera()" title="Reset Camera">↺ Reset</button>
+                            <button class="mini-btn" onclick="reconstruction3D?.toggleAnimation()" title="Auto Rotate">🔄 Rotate</button>
+                            <button class="mini-btn" onclick="reconstruction3D?.captureScreenshot()" title="Screenshot">📷</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Viewport Grid -->
+                <div class="viewport-grid" id="viewportGrid">
+                    <div class="viewport" id="viewport-0" onclick="setActiveViewport(0)">
+                        <!-- Viewport Overlays -->
+                        <div class="viewport-overlay top-left">
+                            <span id="overlay-patient-0"></span>
+                            <span id="overlay-study-0" class="text-muted"></span>
+                        </div>
+                        <div class="viewport-overlay top-right">
+                            <span id="overlay-series-0"></span>
+                            <span id="overlay-modality-0"></span>
+                        </div>
+                        <div class="viewport-overlay bottom-left">
+                            <span id="overlay-wl-0"></span>
+                            <span id="overlay-zoom-0"></span>
+                        </div>
+                        <div class="viewport-overlay bottom-right">
+                            <span id="overlay-slice-0"></span>
+                        </div>
+
+                        <!-- Cornerstone Viewport Element -->
+                        <div class="viewport-element" id="viewport-element-0"></div>
+
+                        <!-- Empty State -->
+                        <div class="viewport-empty" id="viewport-empty-0">
+                            <div class="empty-content">
+                                <div class="empty-icon">🩻</div>
+                                <h4>No Image Loaded</h4>
+                                <p>Drag and drop a series here to view</p>
+                                <div class="drop-hint">Or double-click a series from the list</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="status-left">
+                        <div class="status-item">
+                            <span class="icon">📍</span>
+                            <span id="mousePosition">X: - Y: -</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="icon">💡</span>
+                            <span id="pixelValue">HU: -</span>
+                        </div>
+                    </div>
+                    <div class="status-center">
+                        <span id="retrieveStatus"></span>
+                    </div>
+                    <div class="status-right">
+                        <div class="status-item">
+                            <span class="icon">💾</span>
+                            <span id="memoryUsage">Memory: - MB</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="icon">⏱️</span>
+                            <span id="currentTime"></span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- ========== RIGHT PANEL ========== -->
+            <aside class="right-panel" id="rightPanel">
+                <div class="panel-tabs">
+                    <button class="panel-tab active" data-panel="thumbnails" onclick="showPanel('thumbnails')" title="Thumbnails">
+                        <span class="icon">🖼️</span>
+                        <span>Thumbs</span>
+                    </button>
+                    <button class="panel-tab" data-panel="info" onclick="showPanel('info')" title="DICOM Info">
+                        <span class="icon">ℹ️</span>
+                        <span>Info</span>
+                    </button>
+                    <button class="panel-tab" data-panel="segmentation" onclick="showPanel('segmentation')" title="Segmentation">
+                        <span class="icon">🎨</span>
+                        <span>Segs</span>
+                    </button>
+                    <button class="panel-tab" data-panel="annotations" onclick="showPanel('annotations')" title="Annotations">
+                        <span class="icon">📝</span>
+                        <span>Notes</span>
+                    </button>
+                </div>
+
+                <!-- Thumbnails Panel -->
+                <div class="panel-content" id="thumbnailsPanel">
+                    <div class="thumbnail-grid" id="thumbnailGrid">
+                        <div class="empty-state">
+                            <p class="text-muted">Load a study to see thumbnails</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="panel-content" id="infoPanel" style="display: none;">
+                    <div class="info-section">
+                        <h4>👤 Patient</h4>
+                        <div id="patientInfo">
+                            <div class="info-row">
+                                <span class="label">Name</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">ID</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">DOB</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Sex</span>
+                                <span class="value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <h4>📋 Study</h4>
+                        <div id="studyInfoPanel">
+                            <div class="info-row">
+                                <span class="label">Date</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Accession</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Description</span>
+                                <span class="value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <h4>📂 Series</h4>
+                        <div id="seriesInfoPanel">
+                            <div class="info-row">
+                                <span class="label">Modality</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Description</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Body Part</span>
+                                <span class="value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <h4>🖼️ Image</h4>
+                        <div id="imageInfoPanel">
+                            <div class="info-row">
+                                <span class="label">Size</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Spacing</span>
+                                <span class="value">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Thickness</span>
+                                <span class="value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segmentation Panel -->
+                <div class="panel-content" id="segmentationPanel" style="display: none;">
+                    <div class="segment-tools">
+                        <div class="brush-controls">
+                            <label>Brush:</label>
+                            <input type="range" id="brushSize" min="1" max="50" value="10"
+                                   onchange="segmentationManager.setBrushSize(this.value)">
+                            <span class="brush-size-label" id="brushSizeLabel">10px</span>
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button class="btn btn-sm btn-secondary active" onclick="setBrushShape('circle')">⚫ Circle</button>
+                            <button class="btn btn-sm btn-secondary" onclick="setBrushShape('square')">⬛ Square</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-primary btn-sm" onclick="createNewSegment()" style="width: 100%;">
+                            ➕ Create New Segment
+                        </button>
+                    </div>
+
+                    <div class="segments-list mt-3" id="segmentsList">
+                        <div class="empty-state">
+                            <p class="text-muted">No segments created</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Annotations Panel -->
+                <div class="panel-content" id="annotationsPanel" style="display: none;">
+                    <div class="annotations-list" id="annotationsList">
+                        <div class="empty-state">
+                            <p class="text-muted">No annotations yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Actions -->
+                <div class="panel-actions" id="panelActions">
+                    <button class="btn btn-sm btn-primary" onclick="saveAnnotationsToSR()" id="saveAnnotationsBtn" style="display: none;">
+                        💾 Save to SR
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="exportAnnotations()" id="exportAnnotationsBtn" style="display: none;">
+                        📤 Export
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+
+    <!-- New Segment Modal -->
+    <div class="modal" id="newSegmentModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎨 Create New Segment</h3>
+                <button class="btn-icon" onclick="closeNewSegmentModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Segment Label</label>
+                    <input type="text" id="newSegmentLabel" class="form-input" placeholder="e.g., Liver, Tumor">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="newSegmentCategory" class="form-input">
+                        <option value="Organ">Organ</option>
+                        <option value="Lesion">Lesion</option>
+                        <option value="Tumor">Tumor</option>
+                        <option value="Anatomical">Anatomical Structure</option>
+                        <option value="Finding">Finding</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Anatomical Type</label>
+                    <select id="newSegmentType" class="form-input">
+                        <option value="Liver">Liver</option>
+                        <option value="Kidney">Kidney</option>
+                        <option value="Spleen">Spleen</option>
+                        <option value="Lung">Lung</option>
+                        <option value="Heart">Heart</option>
+                        <option value="Brain">Brain</option>
+                        <option value="Bone">Bone</option>
+                        <option value="Tumor">Tumor</option>
+                        <option value="Lesion">Lesion</option>
+                        <option value="Vessel">Blood Vessel</option>
+                        <option value="Tissue">Other Tissue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <input type="color" id="newSegmentColor" value="#FF0000">
+                </div>
+                <div class="form-group">
+                    <label>Opacity</label>
+                    <input type="range" id="newSegmentOpacity" min="0.1" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeNewSegmentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmCreateSegment()">Create Segment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Editor Modal -->
+    <div class="modal report-modal" id="reportEditorModal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>📋 Radiology Report</h3>
+                <div class="flex gap-2">
+                    <span class="status-badge" id="reportSaveStatus">Draft</span>
+                    <button class="btn-icon" onclick="reportManager.hideReportEditor()">✕</button>
+                </div>
+            </div>
+            <div class="modal-body" style="padding: 0; overflow-y: auto;">
+                <!-- Patient Info Bar -->
+                <div class="report-patient-info">
+                    <div class="info-item">
+                        <span class="label">Patient:</span>
+                        <span class="value" id="reportPatientName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">ID:</span>
+                        <span class="value" id="reportPatientId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Accession:</span>
+                        <span class="value" id="reportAccession">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Study Date:</span>
+                        <span class="value" id="reportStudyDate">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Status:</span>
+                        <span id="reportStatus" class="status-badge">DRAFT</span>
+                    </div>
+                </div>
+
+                <!-- Template Selection -->
+                <div class="report-template-bar">
+                    <label>Template:</label>
+                    <select id="reportTemplate" class="form-input" style="max-width: 200px;">
+                        <option value="">Select Template...</option>
+                        <option value="ct-chest">CT Chest</option>
+                        <option value="ct-abdomen">CT Abdomen/Pelvis</option>
+                        <option value="ct-head">CT Head</option>
+                        <option value="mri-brain">MRI Brain</option>
+                        <option value="xray-chest">X-Ray Chest</option>
+                    </select>
+                    <label>Reporting Physician:</label>
+                    <input type="text" id="reportingPhysician" class="form-input" placeholder="Dr. Name" style="max-width: 200px;">
+                </div>
+
+                <!-- Report Sections -->
+                <div class="report-sections">
+                    <div class="report-section">
+                        <label>CLINICAL HISTORY</label>
+                        <textarea id="clinicalHistory" class="report-textarea"
+                                  placeholder="Enter clinical history, reason for exam..."></textarea>
+                    </div>
+
+                    <div class="report-section">
+                        <label>TECHNIQUE</label>
+                        <textarea id="technique" class="report-textarea"
+                                  placeholder="Describe imaging technique, contrast, etc..."></textarea>
+                    </div>
+
+                    <div class="report-section">
+                        <label>COMPARISON</label>
+                        <textarea id="comparison" class="report-textarea"
+                                  placeholder="Prior studies compared..."></textarea>
+                    </div>
+
+                    <div class="report-section findings-section">
+                        <label>FINDINGS</label>
+                        <textarea id="findings" class="report-textarea large"
+                                  placeholder="Describe imaging findings in detail..."></textarea>
+                    </div>
+
+                    <div class="report-section impression-section">
+                        <label>IMPRESSION</label>
+                        <textarea id="impression" class="report-textarea"
+                                  placeholder="Summary impression and diagnosis..."></textarea>
+                    </div>
+
+                    <div class="report-section">
+                        <label>RECOMMENDATIONS</label>
+                        <textarea id="recommendations" class="report-textarea"
+                                  placeholder="Follow-up recommendations..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="report-actions">
+                <div class="action-group">
+                    <button class="btn btn-secondary" onclick="reportManager.exportToPdf()">🖨️ Print/PDF</button>
+                    <button class="btn btn-secondary" onclick="reportManager.exportToDicomSr()">📤 Export SR</button>
+                </div>
+                <div class="action-group">
+                    <button class="btn btn-secondary" onclick="reportManager.hideReportEditor()">Cancel</button>
+                    <button class="btn btn-secondary" onclick="reportManager.saveDraft()">💾 Save Draft</button>
+                    <button class="btn btn-primary" onclick="reportManager.submitForReview()">Submit for Review</button>
+                    <button class="btn btn-success" onclick="reportManager.signReport()">✓ Sign & Finalize</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal" id="shortcutsModal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                <button class="btn-icon" onclick="hideKeyboardShortcuts()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-section">
+                    <h4>Navigation Tools</h4>
+                    <div class="info-row"><span class="label">Window/Level</span><span class="kbd">W</span></div>
+                    <div class="info-row"><span class="label">Pan</span><span class="kbd">P</span></div>
+                    <div class="info-row"><span class="label">Zoom</span><span class="kbd">Z</span></div>
+                    <div class="info-row"><span class="label">Scroll</span><span class="kbd">S</span></div>
+                </div>
+                <div class="info-section">
+                    <h4>Measurements</h4>
+                    <div class="info-row"><span class="label">Length</span><span class="kbd">L</span></div>
+                    <div class="info-row"><span class="label">Angle</span><span class="kbd">A</span></div>
+                    <div class="info-row"><span class="label">ROI</span><span class="kbd">R</span></div>
+                </div>
+                <div class="info-section">
+                    <h4>Segmentation</h4>
+                    <div class="info-row"><span class="label">Brush</span><span class="kbd">B</span></div>
+                    <div class="info-row"><span class="label">Eraser</span><span class="kbd">E</span></div>
+                    <div class="info-row"><span class="label">Fill</span><span class="kbd">F</span></div>
+                </div>
+                <div class="info-section">
+                    <h4>View</h4>
+                    <div class="info-row"><span class="label">Reset View</span><span class="kbd">Esc</span></div>
+                    <div class="info-row"><span class="label">Invert Colors</span><span class="kbd">I</span></div>
+                    <div class="info-row"><span class="label">Toggle Sidebar</span><span class="kbd">Tab</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="hideKeyboardShortcuts()">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/cornerstone-init.js"></script>
+    <script src="js/cornerstone-service.js"></script>
+    <script src="js/viewport-manager.js"></script>
+    <script src="js/advanced-viewport-manager.js"></script>
+    <script src="js/mpr-viewer.js"></script>
+    <script src="js/annotation-manager.js"></script>
+    <script src="js/segmentation-manager.js"></script>
+    <script src="js/measurement-manager.js"></script>
+    <script src="js/report-manager.js"></script>
+    <!-- WebGL 3D Volume Rendering -->
+    <script src="js/transfer-function-presets.js"></script>
+    <script src="js/webgl-volume-loader.js"></script>
+    <script src="js/webgl-volume-renderer.js"></script>
+    <script src="js/reconstruction-3d.js"></script>
+    <script src="js/collaboration-manager.js"></script>
+    <script src="js/study-browser-pro.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/app-pro.js"></script>
+</body>
+</html>
+
