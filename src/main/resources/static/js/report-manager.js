@@ -385,6 +385,15 @@ class ReportManager {
                 this.currentReport = await response.json();
                 this.populateForm(this.currentReport);
                 showToast('Report signed and finalized', 'success');
+
+                // Notify workflow manager
+                if (typeof workflowManager !== 'undefined') {
+                    workflowManager.linkReport(
+                        this.currentReport.studyInstanceUid,
+                        this.currentReport.id,
+                        'FINAL'
+                    );
+                }
             }
         } catch (error) {
             console.error('Error signing report:', error);

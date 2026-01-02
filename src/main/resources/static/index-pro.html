@@ -779,6 +779,124 @@
         </div>
     </div>
 
+    <!-- ========== WORKLIST PANEL ========== -->
+    <div class="worklist-panel" id="worklistPanel" style="display: none;">
+        <div class="worklist-header">
+            <div class="worklist-title">
+                <span class="icon">📋</span>
+                <span>Radiology Worklist</span>
+            </div>
+            <div class="worklist-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="statUnread">0</div>
+                    <div class="stat-label">Unread</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statInReading">0</div>
+                    <div class="stat-label">In Reading</div>
+                </div>
+                <div class="stat-card stat-overdue">
+                    <div class="stat-value" id="statOverdue">0</div>
+                    <div class="stat-label">Overdue</div>
+                </div>
+                <div class="stat-card stat-urgent">
+                    <div class="stat-value" id="statStat">0</div>
+                    <div class="stat-label">STAT</div>
+                </div>
+            </div>
+            <button class="worklist-close" onclick="workflowManager.hideWorklist()">✕</button>
+        </div>
+
+        <div class="worklist-toolbar">
+            <div class="worklist-filters">
+                <div class="filter-group">
+                    <label class="filter-label">Status:</label>
+                    <select id="worklistStatusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="UNREAD">Unread</option>
+                        <option value="IN_READING">In Reading</option>
+                        <option value="PRELIMINARY">Preliminary</option>
+                        <option value="FINAL">Final</option>
+                        <option value="ON_HOLD">On Hold</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Modality:</label>
+                    <select id="worklistModalityFilter" class="filter-select">
+                        <option value="">All Modalities</option>
+                        <option value="CT">CT</option>
+                        <option value="MR">MR</option>
+                        <option value="XR">X-Ray</option>
+                        <option value="US">Ultrasound</option>
+                        <option value="NM">Nuclear Medicine</option>
+                        <option value="MG">Mammography</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Priority:</label>
+                    <select id="worklistPriorityFilter" class="filter-select">
+                        <option value="">All Priority</option>
+                        <option value="STAT">STAT</option>
+                        <option value="URGENT">Urgent</option>
+                        <option value="ASAP">ASAP</option>
+                        <option value="ROUTINE">Routine</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="worklist-search">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="worklistSearch" placeholder="Search patient, MRN, accession...">
+            </div>
+
+            <div class="worklist-actions">
+                <button class="btn-claim-next" onclick="workflowManager.claimNextCase()">
+                    <span>▶️</span>
+                    <span>Claim Next Case</span>
+                </button>
+                <button class="btn btn-secondary" onclick="workflowManager.loadWorklist()">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="worklist-content">
+            <table class="worklist-table">
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>Patient</th>
+                        <th>Accession</th>
+                        <th>Modality</th>
+                        <th>Study</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Waiting</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="worklistTableBody">
+                    <!-- Worklist rows will be rendered here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="worklist-shortcuts">
+            <div class="shortcut-item">
+                <span class="shortcut-key">Alt+W</span>
+                <span>Toggle Worklist</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Alt+N</span>
+                <span>Claim Next Case</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Double-click</span>
+                <span>Open Study</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 

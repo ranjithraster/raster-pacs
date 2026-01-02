@@ -40,6 +40,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('⚠️ 3D Reconstruction module initialization warning:', e);
     }
 
+    // Initialize workflow manager
+    try {
+        if (typeof workflowManager !== 'undefined') {
+            await workflowManager.initialize();
+            console.log('✅ Workflow manager initialized');
+        }
+    } catch (e) {
+        console.warn('⚠️ Workflow manager initialization warning:', e);
+    }
+
     // Load PACS nodes
     await loadPacsNodes();
 
