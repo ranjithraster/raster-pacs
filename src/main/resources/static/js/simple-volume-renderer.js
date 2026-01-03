@@ -227,7 +227,15 @@ class SimpleVolumeRenderer {
             
             float sampleVolume(vec3 pos, vec3 boxSize) {
                 // Convert position in world space to texture coordinates
+                // Note: pos is in normalized physical space, boxSize is the physical size of the volume
+                // We need to map to [0,1] texture coordinates
                 vec3 tc = (pos / boxSize) + 0.5;
+                
+                // Swap Y and Z for proper medical image orientation (Z is depth/slice direction)
+                // In 3D textures: S=width(X), T=height(Y), R=depth(Z/slices)
+                // DICOM: X=left-right, Y=anterior-posterior, Z=inferior-superior (slices)
+                tc = vec3(tc.x, tc.y, tc.z);
+                
                 if (any(lessThan(tc, vec3(0.0))) || any(greaterThan(tc, vec3(1.0)))) {
                     return 0.0;
                 }
@@ -338,16 +346,27 @@ class SimpleVolumeRenderer {
                 
                 if (uRenderMode == 1) {
                     // MIP with contrast enhancement
-                    float v = pow(maxIntensity, 0.7); // Gamma correction for better visibility
-                    // Show at least something if maxIntensity is 0
-                    if (maxIntensity < 0.001) {
-                        fragColor = vec4(debugTint, debugTint * 0.5, debugTint * 0.8, 1.0);
+                    // Apply windowing for better visibility
+                    // maxIntensity is normalized to [0,1] where 0=-1024 HU, 1=3071 HU
+                    // Typical body range: 0.25 (0 HU) to 0.5 (1024 HU)
+                    float windowedVal = (maxIntensity - 0.1) / 0.5; // Window/Level adjustment
+                    windowedVal = clamp(windowedVal, 0.0, 1.0);
+                    float v = pow(windowedVal, 0.8); // Gamma correction for better visibility
+                    
+                    // Show at least something if maxIntensity is very low
+                    if (maxIntensity < 0.01) {
+                        // Debug: show that we're hitting the volume (blue tint)
+                        fragColor = vec4(0.0, 0.0, debugTint * 2.0, 1.0);
                     } else {
                         fragColor = vec4(vec3(v), 1.0);
                     }
                 } else if (uRenderMode == 2) {
                     float val = minIntensity < 1.0 ? minIntensity : 0.0;
                     fragColor = vec4(vec3(val), 1.0);
+                } else if (uRenderMode == 3) {
+                    // Debug mode: show normalized value directly at center of volume
+                    float centerVal = sampleVolume(vec3(0.0), boxSize);
+                    fragColor = vec4(centerVal, centerVal * 0.5, 0.0, 1.0);
                 } else {
                     // Volume rendering - add slight background if too dark
                     if (accum.a < 0.01) {
@@ -611,6 +630,10 @@ class SimpleVolumeRenderer {
             this.transferTexture = gl.createTexture();
         }
 
+        // Check for required extensions for float textures
+        const colorBufferFloatExt = gl.getExtension('EXT_color_buffer_float');
+        console.log('[SimpleVolumeRenderer] EXT_color_buffer_float:', colorBufferFloatExt ? 'supported' : 'NOT supported');
+
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this.transferTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -618,7 +641,22 @@ class SimpleVolumeRenderer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+        // Clear any errors before texture upload
+        while (gl.getError() !== gl.NO_ERROR) {}
+
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, size, 1, 0, gl.RGBA, gl.FLOAT, data);
+
+        const err = gl.getError();
+        if (err !== gl.NO_ERROR) {
+            console.error('[SimpleVolumeRenderer] Error creating transfer texture (RGBA32F):', err);
+            // Fallback to RGBA8 if float textures are not supported
+            console.log('[SimpleVolumeRenderer] Falling back to RGBA8 transfer texture');
+            const uint8Data = new Uint8Array(size * 4);
+            for (let i = 0; i < size * 4; i++) {
+                uint8Data[i] = Math.floor(data[i] * 255);
+            }
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, uint8Data);
+        }
     }
 
     interpolateColor(hu) {
@@ -763,6 +801,16 @@ class SimpleVolumeRenderer {
         if (!this.volumeTexture) {
             console.warn('[SimpleVolumeRenderer] render() called but no volumeTexture');
             // Render a test pattern to prove WebGL is working
+            this.renderTestPattern();
+            return;
+        }
+
+        // Validate dimensions before rendering
+        if (!this.volumeDimensions ||
+            this.volumeDimensions.width <= 0 ||
+            this.volumeDimensions.height <= 0 ||
+            this.volumeDimensions.depth <= 0) {
+            console.error('[SimpleVolumeRenderer] Invalid volume dimensions:', this.volumeDimensions);
             this.renderTestPattern();
             return;
         }

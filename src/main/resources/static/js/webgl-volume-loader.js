@@ -271,11 +271,25 @@ class VolumeDataLoader {
         // Find double CRLF that separates headers from body
         const headerEnd = this.findSequence(part, new Uint8Array([0x0D, 0x0A, 0x0D, 0x0A]));
         const bodyStart = headerEnd !== -1 ? headerEnd + 4 : 0;
+
+        console.log(`[VolumeLoader] extractBinaryBody: part.length=${part.length}, headerEnd=${headerEnd}, bodyStart=${bodyStart}`);
+
         // Use slice() to create a copy of just the body portion
         // Note: Uint8Array.slice() returns a new array with its own buffer
         const bodyArray = part.slice(bodyStart);
+
+        console.log(`[VolumeLoader] bodyArray: length=${bodyArray.length}, byteOffset=${bodyArray.byteOffset}, buffer.byteLength=${bodyArray.buffer.byteLength}`);
+
+        // Check first few bytes to verify we got proper binary data
+        if (bodyArray.length >= 10) {
+            const firstBytes = Array.from(bodyArray.slice(0, 10)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+            console.log(`[VolumeLoader] First 10 bytes: ${firstBytes}`);
+        }
+
         // Return a proper ArrayBuffer copy (not a view into the original buffer)
-        return bodyArray.buffer.slice(bodyArray.byteOffset, bodyArray.byteOffset + bodyArray.byteLength);
+        const result = bodyArray.buffer.slice(bodyArray.byteOffset, bodyArray.byteOffset + bodyArray.byteLength);
+        console.log(`[VolumeLoader] Returning ArrayBuffer with byteLength=${result.byteLength}`);
+        return result;
     }
 
     /**

@@ -504,6 +504,7 @@ class MPRViewer {
 
     /**
      * Load volume data for MPR reconstruction
+     * Uses batched loading with async yielding to prevent UI freezing
      */
     async loadVolumeForMPR(imageIds) {
         console.log('Loading volume for MPR with', imageIds.length, 'images');
@@ -513,25 +514,22 @@ class MPRViewer {
         let rescaleSlope = 1, rescaleIntercept = 0;
         let windowCenter = 40, windowWidth = 400;
 
-        // Load all images
-        for (let i = 0; i < imageIds.length; i++) {
-            try {
-                const imageId = imageIds[i];
-                const url = imageId.replace('wadouri:', '');
+        const BATCH_SIZE = 10; // Process images in batches to prevent UI freezing
+        const totalImages = imageIds.length;
 
-                // Update loading progress
-                const progress = ((i + 1) / imageIds.length) * 100;
-                this.updateLoadingProgress(progress);
+        // Load images in batches with concurrent fetching
+        for (let batchStart = 0; batchStart < totalImages; batchStart += BATCH_SIZE) {
+            const batchEnd = Math.min(batchStart + BATCH_SIZE, totalImages);
 
-                const response = await fetch(url);
-                if (!response.ok) {
-                    console.warn('Failed to fetch slice', i, 'status:', response.status);
-                    continue;
-                }
+            // Process batch concurrently
+            const batchPromises = [];
+            for (let i = batchStart; i < batchEnd; i++) {
+                batchPromises.push(this.loadSingleSlice(imageIds[i], i));
+            }
 
-                const arrayBuffer = await response.arrayBuffer();
-                const sliceData = await this.parseSliceForVolume(arrayBuffer, i);
+            const batchResults = await Promise.all(batchPromises);
 
+            for (const sliceData of batchResults) {
                 if (sliceData) {
                     allSlices.push(sliceData);
                     rows = sliceData.rows;
@@ -541,9 +539,14 @@ class MPRViewer {
                     windowCenter = sliceData.windowCenter;
                     windowWidth = sliceData.windowWidth;
                 }
-            } catch (error) {
-                console.warn('Error loading slice', i, error);
             }
+
+            // Update progress and yield to UI thread
+            const progress = (batchEnd / totalImages) * 100;
+            this.updateLoadingProgress(progress);
+
+            // Yield to allow UI updates - prevents browser hang
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
 
         if (allSlices.length === 0) {
@@ -568,14 +571,23 @@ class MPRViewer {
             return (a.instanceNumber || 0) - (b.instanceNumber || 0);
         });
 
-        // Combine into 3D volume
+        // Combine into 3D volume with chunking to prevent UI freeze
         const sliceSize = rows * cols;
         const volumeData = new Float32Array(sliceSize * allSlices.length);
 
-        for (let z = 0; z < allSlices.length; z++) {
-            const slice = allSlices[z];
-            for (let i = 0; i < sliceSize; i++) {
-                volumeData[z * sliceSize + i] = slice.pixelData[i];
+        const VOLUME_CHUNK_SIZE = 50; // Process volume building in chunks
+        for (let z = 0; z < allSlices.length; z += VOLUME_CHUNK_SIZE) {
+            const chunkEnd = Math.min(z + VOLUME_CHUNK_SIZE, allSlices.length);
+            for (let zz = z; zz < chunkEnd; zz++) {
+                const slice = allSlices[zz];
+                const offset = zz * sliceSize;
+                for (let i = 0; i < sliceSize; i++) {
+                    volumeData[offset + i] = slice.pixelData[i];
+                }
+            }
+            // Yield periodically during volume building
+            if (z % (VOLUME_CHUNK_SIZE * 2) === 0 && z > 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
         }
 
@@ -610,6 +622,25 @@ class MPRViewer {
 
         console.log('MPR volume loading complete');
         showToast('MPR Ready', 'Volume loaded - Sagittal and Coronal views available', 'success');
+    }
+
+    /**
+     * Load a single slice - extracted for parallel batch loading
+     */
+    async loadSingleSlice(imageId, sliceIndex) {
+        try {
+            const url = imageId.replace('wadouri:', '');
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.warn('Failed to fetch slice', sliceIndex, 'status:', response.status);
+                return null;
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            return await this.parseSliceForVolume(arrayBuffer, sliceIndex);
+        } catch (error) {
+            console.warn('Error loading slice', sliceIndex, error);
+            return null;
+        }
     }
 
     /**

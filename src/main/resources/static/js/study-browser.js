@@ -28,7 +28,9 @@ async function searchStudies() {
     const patientName = document.getElementById('patientName').value;
     const dateFrom = document.getElementById('studyDateFrom').value;
     const dateTo = document.getElementById('studyDateTo').value;
-    const modality = document.getElementById('modality').value;
+    const modalitySelect = document.getElementById('modality');
+    const selectedModalities = Array.from(modalitySelect.selectedOptions).map(opt => opt.value).filter(v => v);
+    const modality = selectedModalities.join('\\');
     const accessionNumber = document.getElementById('accessionNumber').value;
     const pacsNode = document.getElementById('pacsNode').value;
 
@@ -255,7 +257,8 @@ function clearSearch() {
     document.getElementById('patientName').value = '';
     document.getElementById('studyDateFrom').value = '';
     document.getElementById('studyDateTo').value = '';
-    document.getElementById('modality').value = '';
+    const modalitySelect = document.getElementById('modality');
+    Array.from(modalitySelect.options).forEach(opt => opt.selected = false);
     document.getElementById('accessionNumber').value = '';
     document.getElementById('studyList').innerHTML = '<div class="empty-state">Search for studies above</div>';
     closeSeriesPanel();
