@@ -473,6 +473,7 @@ class MPRViewer {
      * Create MPR viewports
      */
     async createMPRViewports(studyUid, seriesUid, imageIds, layouts) {
+        // Create viewports first
         for (let i = 0; i < layouts.length; i++) {
             const layout = layouts[i];
             const element = document.getElementById(`mpr-element-${i}`);
@@ -493,6 +494,199 @@ class MPRViewer {
 
             // Setup scroll indicator
             this.setupScrollIndicator(i, viewport);
+        }
+
+        // Now load volume data for sagittal/coronal reconstruction
+        if (imageIds && imageIds.length > 0) {
+            await this.loadVolumeForMPR(imageIds);
+        }
+    }
+
+    /**
+     * Load volume data for MPR reconstruction
+     */
+    async loadVolumeForMPR(imageIds) {
+        console.log('Loading volume for MPR with', imageIds.length, 'images');
+
+        const allSlices = [];
+        let rows = 0, cols = 0;
+        let rescaleSlope = 1, rescaleIntercept = 0;
+        let windowCenter = 40, windowWidth = 400;
+
+        // Load all images
+        for (let i = 0; i < imageIds.length; i++) {
+            try {
+                const imageId = imageIds[i];
+                const url = imageId.replace('wadouri:', '');
+
+                // Update loading progress
+                const progress = ((i + 1) / imageIds.length) * 100;
+                this.updateLoadingProgress(progress);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.warn('Failed to fetch slice', i, 'status:', response.status);
+                    continue;
+                }
+
+                const arrayBuffer = await response.arrayBuffer();
+                const sliceData = await this.parseSliceForVolume(arrayBuffer, i);
+
+                if (sliceData) {
+                    allSlices.push(sliceData);
+                    rows = sliceData.rows;
+                    cols = sliceData.cols;
+                    rescaleSlope = sliceData.rescaleSlope;
+                    rescaleIntercept = sliceData.rescaleIntercept;
+                    windowCenter = sliceData.windowCenter;
+                    windowWidth = sliceData.windowWidth;
+                }
+            } catch (error) {
+                console.warn('Error loading slice', i, error);
+            }
+        }
+
+        if (allSlices.length === 0) {
+            console.warn('No slices loaded for MPR');
+            showToast('MPR Error', 'Failed to load volume data', 'error');
+            return;
+        }
+
+        console.log('Loaded', allSlices.length, 'slices for MPR, dimensions:', cols, 'x', rows);
+
+        // Sort slices by slice location or instance number for proper volume ordering
+        allSlices.sort((a, b) => {
+            // First try slice location
+            if (a.sliceLocation !== undefined && b.sliceLocation !== undefined) {
+                return a.sliceLocation - b.sliceLocation;
+            }
+            // Fall back to image position patient Z coordinate
+            if (a.imagePositionZ !== undefined && b.imagePositionZ !== undefined) {
+                return a.imagePositionZ - b.imagePositionZ;
+            }
+            // Fall back to instance number
+            return (a.instanceNumber || 0) - (b.instanceNumber || 0);
+        });
+
+        // Combine into 3D volume
+        const sliceSize = rows * cols;
+        const volumeData = new Float32Array(sliceSize * allSlices.length);
+
+        for (let z = 0; z < allSlices.length; z++) {
+            const slice = allSlices[z];
+            for (let i = 0; i < sliceSize; i++) {
+                volumeData[z * sliceSize + i] = slice.pixelData[i];
+            }
+        }
+
+        const dimensions = {
+            rows: rows,
+            cols: cols,
+            slices: allSlices.length
+        };
+
+        const rescaleParams = {
+            slope: rescaleSlope,
+            intercept: rescaleIntercept
+        };
+
+        // Set volume data on sagittal and coronal viewports for MPR
+        for (const [id, viewport] of this.viewports) {
+            if (viewport.orientation === 'sagittal' || viewport.orientation === 'coronal') {
+                viewport.setVolumeData(volumeData, dimensions, rescaleParams);
+                viewport.setWindowLevel(windowCenter, windowWidth);
+
+                // Update scroll indicator after volume is loaded
+                const index = parseInt(id.split('-').pop());
+                this.updateScrollIndicator(index, viewport);
+            }
+        }
+
+        // Also pass the volume to the axial viewport for consistency
+        const axialViewport = this.viewports.get('mpr-viewport-0');
+        if (axialViewport) {
+            axialViewport.setVolumeData(volumeData, dimensions, rescaleParams);
+        }
+
+        console.log('MPR volume loading complete');
+        showToast('MPR Ready', 'Volume loaded - Sagittal and Coronal views available', 'success');
+    }
+
+    /**
+     * Parse a single DICOM slice for volume building
+     */
+    async parseSliceForVolume(arrayBuffer, sliceIndex) {
+        try {
+            const byteArray = new Uint8Array(arrayBuffer);
+            const dataSet = dicomParser.parseDicom(byteArray);
+
+            const pixelDataElement = dataSet.elements.x7fe00010;
+            if (!pixelDataElement) {
+                console.warn('No pixel data found in slice', sliceIndex);
+                return null;
+            }
+
+            const rows = dataSet.uint16('x00280010');
+            const cols = dataSet.uint16('x00280011');
+            const bitsAllocated = dataSet.uint16('x00280100');
+            const pixelRepresentation = dataSet.uint16('x00280103');
+            const rescaleSlope = parseFloat(dataSet.string('x00281053')) || 1;
+            const rescaleIntercept = parseFloat(dataSet.string('x00281052')) || 0;
+            const windowCenter = parseFloat(dataSet.string('x00281050')?.split('\\')[0]) || 40;
+            const windowWidth = parseFloat(dataSet.string('x00281051')?.split('\\')[0]) || 400;
+
+            // Get slice location/position for proper ordering
+            const sliceLocation = parseFloat(dataSet.string('x00201041')) || undefined;
+            const instanceNumber = dataSet.intString('x00200013') || sliceIndex;
+
+            // Get Image Position Patient (x, y, z)
+            const imagePositionStr = dataSet.string('x00200032');
+            let imagePositionZ = undefined;
+            if (imagePositionStr) {
+                const parts = imagePositionStr.split('\\');
+                if (parts.length >= 3) {
+                    imagePositionZ = parseFloat(parts[2]);
+                }
+            }
+
+            let pixelData;
+            if (bitsAllocated === 16) {
+                if (pixelRepresentation === 0) {
+                    pixelData = new Uint16Array(arrayBuffer, pixelDataElement.dataOffset, rows * cols);
+                } else {
+                    pixelData = new Int16Array(arrayBuffer, pixelDataElement.dataOffset, rows * cols);
+                }
+            } else {
+                pixelData = new Uint8Array(arrayBuffer, pixelDataElement.dataOffset, rows * cols);
+            }
+
+            return {
+                rows,
+                cols,
+                pixelData,
+                rescaleSlope,
+                rescaleIntercept,
+                windowCenter,
+                windowWidth,
+                sliceLocation,
+                imagePositionZ,
+                instanceNumber
+            };
+        } catch (error) {
+            console.error('Error parsing slice:', sliceIndex, error);
+            return null;
+        }
+    }
+
+    /**
+     * Update loading progress on non-axial viewports
+     */
+    updateLoadingProgress(progress) {
+        for (const [id, viewport] of this.viewports) {
+            if (viewport.orientation !== 'axial' && !viewport.volumeLoaded) {
+                viewport.loadingProgress = progress;
+                viewport.showLoadingMessage();
+            }
         }
     }
 
@@ -909,12 +1103,13 @@ class MPRViewer {
 
 /**
  * MPR Viewport - Individual viewport for MPR viewing
+ * Supports true multi-planar reconstruction with axial, sagittal, and coronal views
  */
 class MPRViewport {
     constructor(options) {
         this.id = options.id;
         this.element = options.element;
-        this.orientation = options.orientation;
+        this.orientation = options.orientation; // 'axial', 'sagittal', or 'coronal'
         this.imageIds = options.imageIds || [];
         this.studyUid = options.studyUid;
         this.seriesUid = options.seriesUid;
@@ -936,6 +1131,12 @@ class MPRViewport {
         this.ctx = null;
         this.currentImage = null;
         this.imageCache = new Map();
+
+        // Volume data for MPR reconstruction
+        this.volumeData = null;
+        this.volumeDimensions = null; // { rows, cols, slices }
+        this.volumeLoaded = false;
+        this.loadingProgress = 0;
     }
 
     async initialize() {
@@ -951,9 +1152,47 @@ class MPRViewport {
 
         this.resize();
 
-        // Load first image
+        // For axial view, load first image; for sagittal/coronal, wait for volume
+        // For reference viewport (null orientation), show placeholder
         if (this.imageIds.length > 0) {
-            await this.loadAndDisplayImage(0);
+            if (this.orientation === 'axial') {
+                await this.loadAndDisplayImage(0);
+            } else if (this.orientation === null) {
+                // Reference/3D viewport - show placeholder
+                this.showReferenceViewPlaceholder();
+            } else {
+                // Show loading message for sagittal/coronal views
+                this.showLoadingMessage();
+            }
+        } else if (this.orientation === null) {
+            this.showReferenceViewPlaceholder();
+        }
+    }
+
+    showReferenceViewPlaceholder() {
+        if (!this.ctx || !this.canvas) return;
+
+        this.ctx.fillStyle = '#111';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#666';
+        this.ctx.font = '14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('3D Reference View', this.canvas.width / 2, this.canvas.height / 2 - 10);
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('(Coming soon)', this.canvas.width / 2, this.canvas.height / 2 + 10);
+    }
+
+    showLoadingMessage() {
+        if (!this.ctx || !this.canvas) return;
+
+        this.ctx.fillStyle = '#000';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#888';
+        this.ctx.font = '14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('Loading volume data...', this.canvas.width / 2, this.canvas.height / 2);
+        if (this.loadingProgress > 0) {
+            this.ctx.fillText(`${Math.round(this.loadingProgress)}%`, this.canvas.width / 2, this.canvas.height / 2 + 20);
         }
     }
 
@@ -1046,6 +1285,89 @@ class MPRViewport {
         };
     }
 
+    /**
+     * Set volume data for MPR reconstruction (sagittal/coronal views)
+     */
+    setVolumeData(volumeData, dimensions, rescaleParams) {
+        this.volumeData = volumeData;
+        this.volumeDimensions = dimensions;
+        this.rescaleSlope = rescaleParams?.slope || 1;
+        this.rescaleIntercept = rescaleParams?.intercept || 0;
+        this.volumeLoaded = true;
+
+        // Update total slices based on orientation
+        if (this.orientation === 'sagittal') {
+            this.totalSlices = dimensions.cols;
+            this.currentSlice = Math.floor(dimensions.cols / 2);
+        } else if (this.orientation === 'coronal') {
+            this.totalSlices = dimensions.rows;
+            this.currentSlice = Math.floor(dimensions.rows / 2);
+        } else {
+            this.totalSlices = dimensions.slices;
+        }
+
+        this.render();
+    }
+
+    /**
+     * Extract a slice from volume data based on orientation
+     */
+    extractSliceFromVolume(sliceIndex) {
+        if (!this.volumeData || !this.volumeDimensions) return null;
+
+        const { rows, cols, slices } = this.volumeDimensions;
+        const sliceSize = rows * cols;
+
+        if (this.orientation === 'axial') {
+            // Axial: XY plane at Z position
+            const clampedIndex = Math.max(0, Math.min(slices - 1, sliceIndex));
+            const startIdx = clampedIndex * sliceSize;
+            return {
+                pixelData: this.volumeData.slice(startIdx, startIdx + sliceSize),
+                width: cols,
+                height: rows
+            };
+        } else if (this.orientation === 'sagittal') {
+            // Sagittal: YZ plane at X position (left-right slice)
+            const clampedIndex = Math.max(0, Math.min(cols - 1, sliceIndex));
+            const pixelData = new Float32Array(rows * slices);
+
+            for (let z = 0; z < slices; z++) {
+                for (let y = 0; y < rows; y++) {
+                    const srcIdx = z * sliceSize + y * cols + clampedIndex;
+                    const dstIdx = (slices - 1 - z) * rows + y; // Flip Z for proper orientation
+                    pixelData[dstIdx] = this.volumeData[srcIdx];
+                }
+            }
+
+            return {
+                pixelData: pixelData,
+                width: rows,
+                height: slices
+            };
+        } else if (this.orientation === 'coronal') {
+            // Coronal: XZ plane at Y position (front-back slice)
+            const clampedIndex = Math.max(0, Math.min(rows - 1, sliceIndex));
+            const pixelData = new Float32Array(cols * slices);
+
+            for (let z = 0; z < slices; z++) {
+                for (let x = 0; x < cols; x++) {
+                    const srcIdx = z * sliceSize + clampedIndex * cols + x;
+                    const dstIdx = (slices - 1 - z) * cols + x; // Flip Z for proper orientation
+                    pixelData[dstIdx] = this.volumeData[srcIdx];
+                }
+            }
+
+            return {
+                pixelData: pixelData,
+                width: cols,
+                height: slices
+            };
+        }
+
+        return null;
+    }
+
     render() {
         if (!this.ctx || !this.canvas) return;
 
@@ -1055,6 +1377,18 @@ class MPRViewport {
         // Clear
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // For reference viewport, show placeholder
+        if (this.orientation === null) {
+            this.showReferenceViewPlaceholder();
+            return;
+        }
+
+        // For sagittal/coronal views, use volume data if available
+        if ((this.orientation === 'sagittal' || this.orientation === 'coronal') && this.volumeLoaded) {
+            this.renderFromVolume();
+            return;
+        }
 
         if (!this.currentImage) return;
 
@@ -1124,16 +1458,105 @@ class MPRViewport {
         ctx.restore();
     }
 
+    /**
+     * Render a slice from volume data (for sagittal/coronal views)
+     */
+    renderFromVolume() {
+        const ctx = this.ctx;
+        const canvas = this.canvas;
+
+        const sliceData = this.extractSliceFromVolume(this.currentSlice);
+        if (!sliceData) return;
+
+        const { pixelData, width, height } = sliceData;
+
+        // Create image data
+        const imageData = ctx.createImageData(width, height);
+        const data = imageData.data;
+
+        // Apply window level
+        const wc = this.windowCenter;
+        const ww = this.windowWidth;
+        const lower = wc - ww / 2;
+        const upper = wc + ww / 2;
+        const slope = this.rescaleSlope || 1;
+        const intercept = this.rescaleIntercept || 0;
+
+        for (let i = 0; i < pixelData.length; i++) {
+            let value = pixelData[i] * slope + intercept;
+
+            // Apply window level
+            if (value <= lower) {
+                value = 0;
+            } else if (value >= upper) {
+                value = 255;
+            } else {
+                value = ((value - lower) / ww) * 255;
+            }
+
+            // Apply inversion
+            if (this.isInverted) {
+                value = 255 - value;
+            }
+
+            const idx = i * 4;
+            data[idx] = value;     // R
+            data[idx + 1] = value; // G
+            data[idx + 2] = value; // B
+            data[idx + 3] = 255;   // A
+        }
+
+        // Create temp canvas for transforms
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.putImageData(imageData, 0, 0);
+
+        // Apply transforms
+        ctx.save();
+        ctx.translate(canvas.width / 2 + this.panX, canvas.height / 2 + this.panY);
+        ctx.rotate(this.rotation * Math.PI / 180);
+        ctx.scale(this.flipH ? -this.scale : this.scale, this.flipV ? -this.scale : this.scale);
+
+        // Fit to viewport
+        const aspectRatio = width / height;
+        const canvasAspectRatio = canvas.width / canvas.height;
+        let drawWidth, drawHeight;
+
+        if (aspectRatio > canvasAspectRatio) {
+            drawWidth = canvas.width * 0.9;
+            drawHeight = drawWidth / aspectRatio;
+        } else {
+            drawHeight = canvas.height * 0.9;
+            drawWidth = drawHeight * aspectRatio;
+        }
+
+        ctx.drawImage(tempCanvas, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+        ctx.restore();
+    }
+
     scroll(delta) {
         const newSlice = Math.max(0, Math.min(this.totalSlices - 1, this.currentSlice + delta));
         if (newSlice !== this.currentSlice) {
-            this.loadAndDisplayImage(newSlice);
+            this.currentSlice = newSlice;
+            // For axial view, load image from URL; for sagittal/coronal, re-render from volume
+            if (this.orientation === 'axial' && !this.volumeLoaded) {
+                this.loadAndDisplayImage(newSlice);
+            } else {
+                this.render();
+            }
         }
     }
 
     setSlice(index) {
         if (index >= 0 && index < this.totalSlices) {
-            this.loadAndDisplayImage(index);
+            this.currentSlice = index;
+            if (this.orientation === 'axial' && !this.volumeLoaded) {
+                this.loadAndDisplayImage(index);
+            } else {
+                this.render();
+            }
         }
     }
 
